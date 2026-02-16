@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import TopBar from "../components/TopBar/TopBar";
-import SideBar from "../components/Sidebar";
+import SideBar from "../components/Sidebar/Sidebar";
 import { ID, tablesDB, Query } from "../appwrite/config";
 import GithubIcon from "../components/GithubIcon";
 import { FrownIcon, Loader2Icon } from "lucide-react";

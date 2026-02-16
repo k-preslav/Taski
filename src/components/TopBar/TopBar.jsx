@@ -159,6 +159,7 @@ export default function TopBar({
             onClick={(e) => {
               e.stopPropagation();
               setOpenAccountMenu(false);
+              window.open("/accountSettings", "_blank", "noopener,noreferrer");
             }}
             onKeyDown={(e) => {
               if (e.key === "Enter" || e.key === " ") {

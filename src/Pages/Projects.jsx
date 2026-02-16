@@ -20,7 +20,7 @@ export default function Projects() {
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   const getProjects = async () => {
     try {

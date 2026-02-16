@@ -3,7 +3,7 @@ import "./Card.css";
 import { tablesDB } from "../../appwrite/config";
 import { Trash2Icon, TrashIcon } from "lucide-react";
 
-export default function Card({ text, id, edit, style, onDestroy }) {
+export default function Card({ text, id, edit, style, onDestroy, onRestore }) {
   const [isEditing, setIsEditing] = useState(edit);
   const [value, setValue] = useState(text);
 
@@ -12,7 +12,10 @@ export default function Card({ text, id, edit, style, onDestroy }) {
   }, [edit]);
 
   const onSave = async (newValue) => {
-    if (newValue.trim() === "") onDelete();
+    if (newValue.trim() === "") {
+      await handleDelete();
+      return;
+    }
 
     try {
       await tablesDB.updateRow({
@@ -28,16 +31,36 @@ export default function Card({ text, id, edit, style, onDestroy }) {
     }
   };
 
-  const onDelete = async () => {
+  const handleDelete = async () => {
+    try {
+      onDestroy?.();
+    } catch (err) {
+      console.error("onDestroy handler threw:", err);
+    }
+
     try {
       await tablesDB.deleteRow({
         databaseId: "taski",
         tableId: "cards",
         rowId: id,
       });
-      onDestroy();
     } catch (error) {
-      console.error(error);
+      console.error("Failed to delete card on server:", error);
+      try {
+        if (onRestore) {
+          onRestore({
+            $id: id,
+            content: value,
+            isBacklog: undefined,
+          });
+        } else {
+          console.warn(
+            "Delete failed and no onRestore provided to recover the card.",
+          );
+        }
+      } catch (restoreErr) {
+        console.error("onRestore failed:", restoreErr);
+      }
     }
   };
 
@@ -48,7 +71,7 @@ export default function Card({ text, id, edit, style, onDestroy }) {
     }
     if (e.key === "Escape") {
       if (text.trim() === "") {
-        onDelete();
+        handleDelete();
       }
     }
   };
@@ -75,7 +98,7 @@ export default function Card({ text, id, edit, style, onDestroy }) {
               className="card__deleteButn"
               onClick={(e) => {
                 e.stopPropagation();
-                onDelete();
+                handleDelete();
               }}
             >
               <TrashIcon size={14} />

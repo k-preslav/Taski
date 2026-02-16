@@ -5,6 +5,7 @@ import OAuthCallback from "./Pages/OAuthCallback";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Projects from "./Pages/Projects";
 import HomePage from "./Pages/Homepage";
+import AccountSettings from "./Pages/AccountSettings";
 
 function App() {
   return (
@@ -25,6 +26,14 @@ function App() {
         element={
           <ProtectedRoute>
             <Projects />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/accountSettings"
+        element={
+          <ProtectedRoute>
+            <AccountSettings />
           </ProtectedRoute>
         }
       />

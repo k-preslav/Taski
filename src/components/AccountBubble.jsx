@@ -46,7 +46,7 @@ export default function AccountBubble({ size = 36, onClick }) {
 
   return (
     <div style={styles.container} onClick={onClick} aria-label="Account">
-      <span style={styles.initial}>{initial || "u"}</span>
+      <span style={styles.initial}>{initial || ""}</span>
     </div>
   );
 }
