@@ -14,10 +14,22 @@
     background: #3b3b3b;
 }
 
+/* Layout wrapper for name + bubble: spaced between and vertically centered */
+.project-button__content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    gap: 8px;
+}
+
 .project-button__name {
     font-size: 16px;
     font-weight: 400;
     pointer-events: none;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .project-button__input {

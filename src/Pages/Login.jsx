@@ -4,6 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import TopBar from "../components/TopBar/TopBar";
 import Button from "../components/Button/Button";
 import { SiGithub, SiGoogle, SiReact } from "@icons-pack/react-simple-icons";
+import GithubIcon from "../components/GithubIcon";
 
 function Login() {
   const [isLoading, setIsLoading] = useState(false);
@@ -109,6 +110,8 @@ function Login() {
           <span style={styles.tosButton}>Privacy Policy</span>.
         </p>
       </div>
+
+      <GithubIcon />
     </div>
   );
 }

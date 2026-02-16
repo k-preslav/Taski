@@ -11,6 +11,7 @@ import {
   SquircleDashedIcon,
 } from "lucide-react";
 import GithubIcon from "../components/GithubIcon";
+import Spinner from "../components/Spinner/Spinner";
 
 export default function Projects() {
   const { checkUser } = useAuth();
@@ -19,14 +20,22 @@ export default function Projects() {
   const navigate = useNavigate();
   const { user } = useAuth();
 
+  const [isLoading, setIsLoading] = useState(false);
+
   const getProjects = async () => {
     try {
+      setIsLoading(true);
+
       const response = await tablesDB.listRows({
         databaseId: "taski",
         tableId: "projects",
         queries: [Query.equal("ownerId", user.$id)],
       });
-      setProjects(response.rows);
+
+      setTimeout(() => {
+        setProjects(response.rows);
+        setIsLoading(false);
+      }, 300);
     } catch (error) {
       console.error(error);
     }
@@ -74,38 +83,50 @@ export default function Projects() {
       <div style={styles.content}>
         <p style={styles.header}>My Projects</p>
         <div style={styles.projects}>
-          <div style={styles.listContainer}>
-            {projects.length > 0 ? (
-              projects.map((project) => (
-                <ProjectButton
-                  key={project.$id}
-                  name={project.name}
-                  onSave={(newName) => handleSave(project.$id, newName)}
-                  onClick={() => {
-                    if (project.isTemp) return;
-                    navigate(`/project/${project.$id}`);
-                  }}
-                />
-              ))
-            ) : (
-              <div style={styles.noProjects}>
-                <SquircleDashedIcon
-                  size={36}
-                  strokeWidth={1.7}
-                  color="#696969"
-                />
-                <p style={{ color: "#696969", transform: "translateX(-8px)" }}>
-                  No projects here, yet
-                </p>
+          {isLoading ? (
+            <div style={styles.loadingContainer}>
+              <Spinner color="#696969" />
+            </div>
+          ) : (
+            <>
+              <div style={styles.listContainer}>
+                {projects.length > 0 ? (
+                  projects.map((project) => (
+                    <ProjectButton
+                      key={project.$id}
+                      name={project.name}
+                      onSave={(newName) => handleSave(project.$id, newName)}
+                      onClick={() => {
+                        if (project.isTemp) return;
+                        navigate(`/project/${project.$id}`);
+                      }}
+                    />
+                  ))
+                ) : (
+                  <div style={styles.noProjects}>
+                    <SquircleDashedIcon
+                      size={36}
+                      strokeWidth={1.7}
+                      color="#696969"
+                    />
+                    <p
+                      style={{
+                        color: "#696969",
+                        transform: "translateX(-8px)",
+                      }}
+                    >
+                      No projects here, yet
+                    </p>
+                  </div>
+                )}
               </div>
-            )}
-          </div>
-          <div style={styles.bottom}>
-            <AddButton onClick={addProject} />
-          </div>
+              <div style={styles.bottom}>
+                <AddButton onClick={addProject} />
+              </div>
+            </>
+          )}
         </div>
       </div>
-
       <GithubIcon />
     </div>
   );
@@ -166,5 +187,12 @@ const styles = {
     fontSize: "18px",
     fontStyle: "italic",
     fontWeight: "500",
+  },
+
+  loadingContainer: {
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    height: "100%",
   },
 };

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import "./ProjectButton.css";
+import AccountBubble from "../AccountBubble";
 
 export default function ProjectButton({ name, onClick, onSave }) {
   const [isEditing, setIsEditing] = useState(!name);
@@ -42,7 +43,10 @@ export default function ProjectButton({ name, onClick, onSave }) {
           onClick={(e) => e.stopPropagation()}
         />
       ) : (
-        <span className="project-button__name">{value || "New Project"}</span>
+        <div className="project-button__content">
+          <span className="project-button__name">{value || "New Project"}</span>
+          <AccountBubble size={28} />
+        </div>
       )}
     </div>
   );

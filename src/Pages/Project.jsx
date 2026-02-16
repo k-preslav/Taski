@@ -1,16 +1,22 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import TopBar from "../components/TopBar/TopBar";
 import SideBar from "../components/Sidebar";
 import { ID, tablesDB, Query } from "../appwrite/config";
 import GithubIcon from "../components/GithubIcon";
+import { FrownIcon, Loader2Icon } from "lucide-react";
+import Button from "../components/Button/Button";
+import Spinner from "../components/Spinner/Spinner";
 
 function Project() {
-  const { checkUser } = useAuth();
+  const { checkUser, user } = useAuth();
   const { id: projectId } = useParams();
   const [projectData, setProjectData] = useState(null);
   const [cards, setCards] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const navigate = useNavigate();
 
   const getCards = async () => {
     if (!projectId) return;
@@ -22,7 +28,6 @@ function Project() {
         queries: [Query.equal("projectId", projectId)],
       });
 
-      // Merge server rows with any client-only flags from previous local state
       setCards((prev) => {
         const prevMap = (prev || []).reduce((m, c) => {
           if (c && c.$id) m[c.$id] = c;
@@ -32,7 +37,6 @@ function Project() {
           const prevCard = prevMap[row.$id];
           return {
             ...row,
-            // preserve local-only `edit` flag if present
             edit: !!(prevCard && prevCard.edit),
           };
         });
@@ -46,8 +50,12 @@ function Project() {
     let isMounted = true;
 
     const loadData = async () => {
+      setIsLoading(true);
       await checkUser();
-      if (!projectId) return;
+      if (!projectId) {
+        if (isMounted) setIsLoading(false);
+        return;
+      }
 
       try {
         const response = await tablesDB.getRow({
@@ -56,12 +64,19 @@ function Project() {
           rowId: projectId,
         });
 
+        if (response.ownerId !== user.$id) {
+          navigate("/projects");
+        }
+
         if (isMounted) {
           setProjectData(response);
-          getCards();
+          await getCards();
         }
       } catch (error) {
         console.error("Failed to fetch project:", error);
+        if (isMounted) setProjectData(null);
+      } finally {
+        if (isMounted) setIsLoading(false);
       }
     };
 
@@ -102,7 +117,6 @@ function Project() {
       await getCards();
     } catch (error) {
       console.error("Creation failed:", error);
-      // Remove the optimistic card on failure
       setCards((prev) => prev.filter((card) => card.$id !== tempId));
       alert("Failed to add task. Please try again.");
     }
@@ -114,13 +128,41 @@ function Project() {
         projectName={projectData?.name}
         showProjectMenu={projectData?.name || false}
       />
-      <SideBar
-        onAddTask={() => handleAddTask(true)}
-        projectData={projectData}
-        cards={cards}
-        setCards={setCards}
-      />
 
+      {isLoading ? (
+        <div style={styles.spinnerWrap}>
+          <Spinner size={36} color="#696969" />
+        </div>
+      ) : projectData?.name == null ? (
+        <div style={styles.projectNoExisto}>
+          <FrownIcon size={64} color="#696969" />
+          <p
+            style={{
+              fontSize: "24px",
+              fontWeight: "500",
+              color: "#696969",
+              marginBottom: "26px",
+            }}
+          >
+            This project no longer exist
+          </p>
+
+          <Button onClick={() => navigate("/projects")}>
+            <p style={{ fontSize: "16px", fontWeight: "400", color: "#fff" }}>
+              See all projects
+            </p>
+          </Button>
+        </div>
+      ) : (
+        <>
+          <SideBar
+            onAddTask={() => handleAddTask(true)}
+            projectData={projectData}
+            cards={cards}
+            setCards={setCards}
+          />
+        </>
+      )}
       <GithubIcon />
     </div>
   );
@@ -133,6 +175,22 @@ const styles = {
     height: "100vh",
     width: "100%",
     backgroundColor: "#222222",
+  },
+  projectNoExisto: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "16px",
+    justifyContent: "center",
+    alignItems: "center",
+    height: "100%",
+    fontSize: "24px",
+    color: "#fff",
+  },
+  spinnerWrap: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    height: "100%",
   },
 };
 

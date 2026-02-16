@@ -4,7 +4,7 @@ import React from "react";
 export default function GithubIcon() {
   return (
     <a
-      href="https://github.com/your-repo"
+      href="https://github.com/k-preslav/Taski"
       target="_blank"
       rel="noopener noreferrer"
       style={styles.container}
