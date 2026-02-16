@@ -1,0 +1,25 @@
+.button {
+    padding: 15px 20px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    background-color: #323232;
+    color: #fff;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.18s ease;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.button:hover {
+    background-color: #404040;
+}
+
+.disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+.disabled:hover {
+    background-color: #323232;
+}

@@ -1,0 +1,26 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: "Rubik", sans-serif;
+    line-height: 1.5;
+    background-color: #222222;
+}
+
+html,
+body,
+#root {
+    height: 100%;
+    margin: 0;
+}
+
+p,
+h1,
+h2,
+h3 {
+    color: #fff;
+    font-family: "Rubik";
+}

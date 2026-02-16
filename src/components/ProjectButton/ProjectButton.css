@@ -1,0 +1,33 @@
+.project-button {
+    background: #323232;
+    color: #fff;
+    padding: 14px;
+    border-radius: 7px;
+    width: 100%;
+    cursor: pointer;
+    transition: background 0.15s;
+    box-shadow: 0 1px 8px rgba(0, 0, 0, 0.15);
+    box-sizing: border-box;
+}
+
+.project-button:hover {
+    background: #3b3b3b;
+}
+
+.project-button__name {
+    font-size: 16px;
+    font-weight: 400;
+    pointer-events: none;
+}
+
+.project-button__input {
+    width: 100%;
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-family: inherit;
+    font-size: 17px;
+    font-weight: 400;
+    outline: none;
+    padding: 0;
+}
