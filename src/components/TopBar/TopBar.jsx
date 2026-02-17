@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   ChartNoAxesGanttIcon,
   LaptopMinimalCheckIcon,
@@ -20,192 +20,116 @@ export default function TopBar({
 }) {
   const [openProjectMenu, setOpenProjectMenu] = useState(false);
   const [openAccountMenu, setOpenAccountMenu] = useState(false);
-
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
 
   const projectRef = useRef(null);
   const accountRef = useRef(null);
-  const navigate = useNavigate();
 
   useEffect(() => {
-    function handleClickOutside(e) {
-      const target = e.target;
-      if (projectRef.current && !projectRef.current.contains(target)) {
+    const handleClickOutside = (e) => {
+      if (projectRef.current && !projectRef.current.contains(e.target)) {
         setOpenProjectMenu(false);
       }
-      if (accountRef.current && !accountRef.current.contains(target)) {
+      if (accountRef.current && !accountRef.current.contains(e.target)) {
         setOpenAccountMenu(false);
       }
-    }
-    function handleKey(e) {
+    };
+
+    const handleEsc = (e) => {
       if (e.key === "Escape") {
         setOpenProjectMenu(false);
         setOpenAccountMenu(false);
       }
-    }
+    };
+
     document.addEventListener("mousedown", handleClickOutside);
-    document.addEventListener("keydown", handleKey);
+    document.addEventListener("keydown", handleEsc);
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
-      document.removeEventListener("keydown", handleKey);
+      document.removeEventListener("keydown", handleEsc);
     };
   }, []);
 
-  const menuItems = [
-    {
-      id: "settings",
-      label: "Project Settings",
-      icon: <Settings2Icon size={18} />,
-      onClick: () => console.log("Opening settings"),
-    },
-    {
-      id: "all",
-      label: "All Projects",
-      icon: <ChartNoAxesGanttIcon size={18} />,
-      onClick: () => navigate("/projects"),
-    },
-  ];
-
   return (
     <header className="topbar">
-      <div className="header">
-        <LaptopMinimalCheckIcon className="header__icon" size={26} />
-        <h1 className="header__title">Taski</h1>
+      <div className="topbar__left">
+        <div className="brand" onClick={() => navigate("/projects")}>
+          <LaptopMinimalCheckIcon className="brand__icon" size={22} />
+          <h1 className="brand__title">Taski</h1>
+        </div>
 
         {showProjectMenu && (
-          <div
-            ref={projectRef}
-            className="header__right"
-            tabIndex={0}
-            role="button"
-            aria-haspopup="menu"
-            aria-expanded={openProjectMenu}
-            onClick={() => setOpenProjectMenu((prev) => !prev)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                setOpenProjectMenu((prev) => !prev);
-              }
-            }}
-          >
+          <>
             <VerticalSep />
-            <span className="header__project-name">{projectName || ""}</span>
-            <ChevronDown size={16} className="chevron-button" />
+            <div
+              className="project-selector"
+              ref={projectRef}
+              onClick={() => setOpenProjectMenu(!openProjectMenu)}
+            >
+              <span className="project-selector__name">
+                {projectName || "Loading..."}
+              </span>
+              <ChevronDown
+                size={14}
+                style={{
+                  transform: openProjectMenu ? "rotate(180deg)" : "none",
+                  transition: "transform 0.2s",
+                }}
+              />
 
-            {openProjectMenu && (
-              <div
-                className="project-menu"
-                role="menu"
-                aria-label="Project menu"
-              >
-                {menuItems.map((item) => (
+              {openProjectMenu && (
+                <div className="dropdown-menu">
                   <button
-                    key={item.id}
-                    className="project-menu__item"
-                    role="menuitem"
-                    tabIndex={0}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      item.onClick();
-                      setOpenProjectMenu(false);
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        item.onClick();
-                        setOpenProjectMenu(false);
-                      }
-                    }}
+                    className="menu-item"
+                    onClick={() => navigate("/projects")}
                   >
-                    <span className="project-menu__icon">{item.icon}</span>
-                    <span className="project-menu__label">{item.label}</span>
+                    <ChartNoAxesGanttIcon size={16} />
+                    All Projects
                   </button>
-                ))}
-              </div>
-            )}
-          </div>
+                  <button className="menu-item">
+                    <Settings2Icon size={16} />
+                    Project Settings
+                  </button>
+                </div>
+              )}
+            </div>
+          </>
         )}
       </div>
 
-      {openAccountMenu && (
-        <div
-          ref={accountRef}
-          id="account-menu"
-          className="account-menu"
-          role="menu"
-          aria-label="Account menu"
-        >
-          <div className="account-menu__label" aria-hidden="true">
-            {user?.name || "Guest"}
+      <div className="topbar__right" ref={accountRef}>
+        {showAccountIcon && (
+          <AccountBubble onClick={() => setOpenAccountMenu(!openAccountMenu)} />
+        )}
+
+        {openAccountMenu && (
+          <div className="dropdown-menu dropdown-menu--right">
+            <div className="menu-label">{user?.name || "User Account"}</div>
+            <div className="menu-divider" />
+            <button
+              className="menu-item"
+              onClick={() => {
+                setOpenAccountMenu(false);
+                navigate("/accountSettings");
+              }}
+            >
+              <UserRoundCogIcon size={18} />
+              Account Settings
+            </button>
+            <button
+              className="menu-item menu-item--danger"
+              onClick={() => {
+                setOpenAccountMenu(false);
+                logout();
+              }}
+            >
+              <LogOutIcon size={18} />
+              Log Out
+            </button>
           </div>
-
-          <div
-            className="account-menu__divider"
-            aria-hidden="true"
-            style={{
-              height: "1px",
-              background: "#333",
-              margin: "6px 0",
-              width: "100%",
-              borderRadius: "1px",
-            }}
-          />
-
-          <button
-            className="account-menu__item"
-            role="menuitem"
-            tabIndex={0}
-            onClick={(e) => {
-              e.stopPropagation();
-              setOpenAccountMenu(false);
-              navigate("/accountSettings");
-            }}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                e.stopPropagation();
-                setOpenAccountMenu(false);
-              }
-            }}
-          >
-            <UserRoundCogIcon size={20} />
-            <span className="account-menu__label">Account Settings</span>
-          </button>
-          <button
-            className="account-menu__item"
-            style={{ backgroundColor: "#7E3737", marginTop: "6px" }}
-            role="menuitem"
-            tabIndex={0}
-            onClick={(e) => {
-              e.stopPropagation();
-              setOpenAccountMenu(false);
-              logout();
-            }}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                e.stopPropagation();
-                setOpenAccountMenu(false);
-              }
-            }}
-          >
-            <LogOutIcon size={20} />
-            <span className="account-menu__label">Log Out</span>
-          </button>
-        </div>
-      )}
-
-      {showAccountIcon && (
-        <div className="header__account">
-          <AccountBubble
-            onClick={() => setOpenAccountMenu((prev) => !prev)}
-            aria-haspopup="menu"
-            aria-expanded={openAccountMenu}
-            aria-controls="account-menu"
-          />
-        </div>
-      )}
+        )}
+      </div>
     </header>
   );
 }
