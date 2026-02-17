@@ -175,8 +175,9 @@ const styles = {
     gap: "12px",
   },
   emptyText: {
-    color: "#666",
+    color: "#595959",
     fontSize: "14px",
+    fontWeight: "500",
     margin: 0,
   },
   footer: {

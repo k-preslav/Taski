@@ -1,0 +1,115 @@
+.confirm-overlay-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(8px);
+    z-index: 9998;
+}
+
+.confirm-box {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 9999;
+    width: 90%;
+    max-width: 360px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    background: #242424;
+    padding: 32px;
+    border-radius: 16px;
+    border: 1px solid #333;
+    box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.7);
+    animation: confirmPop 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.confirm-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+}
+
+.confirm-text {
+    color: #fff;
+    font-size: 18px;
+    font-weight: 500;
+    margin: 0;
+    text-align: center;
+    line-height: 1.4;
+}
+
+.confirm-actions {
+    display: flex;
+    gap: 12px;
+    width: 100%;
+}
+
+.btn-confirm-destructive {
+    flex: 1;
+    background: #3d2323;
+    color: #ff6b6b;
+    border: 1px solid #542b2b;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-confirm-destructive:hover {
+    background: #4d2a2a;
+}
+
+.btn-confirm {
+    flex: 1;
+    background: #1a1a1a;
+    color: #ccc;
+    border: 1px solid #333;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-confirm:hover {
+    color: #fff;
+    border-color: #444;
+}
+
+.btn-cancel {
+    flex: 1;
+    background: #1a1a1a;
+    color: #ccc;
+    border: 1px solid #333;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-cancel:hover {
+    color: #fff;
+    border-color: #444;
+}
+
+@keyframes confirmPop {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -48%) scale(0.92);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+}

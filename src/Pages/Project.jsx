@@ -82,7 +82,7 @@ function Project() {
           setProjectData(response);
           await getCards();
         }
-      } catch (error) {
+      } catch {
         if (isMounted) setProjectData(null);
       } finally {
         if (isMounted) setIsLoading(false);
@@ -123,6 +123,8 @@ function Project() {
   };
 
   const updateProject = async (name, isPublic) => {
+    setShowProjectSettings(false);
+
     await tablesDB.updateRow({
       databaseId: "taski",
       tableId: "projects",
@@ -133,11 +135,34 @@ function Project() {
   };
 
   const deleteProject = async () => {
+    setShowProjectSettings(false);
+    setIsLoading(true);
+
+    // 1. Fetch all cards associated with this project
+    const response = await tablesDB.listRows({
+      databaseId: "taski",
+      tableId: "cards",
+      queries: [Query.equal("projectId", projectData.$id)],
+    });
+
+    // 2. Delete each card
+    const deletePromises = response.rows.map((card) =>
+      tablesDB.deleteRow({
+        databaseId: "taski",
+        tableId: "cards",
+        rowId: card.$id,
+      }),
+    );
+
+    await Promise.all(deletePromises);
+
+    // 3. Delete the project itself
     await tablesDB.deleteRow({
       databaseId: "taski",
       tableId: "projects",
       rowId: projectData.$id,
     });
+
     navigate("/projects");
   };
 
@@ -188,7 +213,6 @@ function Project() {
                 onClose={() => setShowProjectSettings(false)}
                 onSave={(name, isPublic) => {
                   updateProject(name, isPublic);
-                  setShowProjectSettings(false);
                 }}
                 onDelete={deleteProject}
               />

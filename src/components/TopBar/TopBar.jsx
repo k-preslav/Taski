@@ -83,17 +83,17 @@ export default function TopBar({
                 <div className="dropdown-menu">
                   <button
                     className="menu-item"
-                    onClick={() => navigate("/projects")}
-                  >
-                    <ChartNoAxesGanttIcon size={16} />
-                    All Projects
-                  </button>
-                  <button
-                    className="menu-item"
                     onClick={onProjectMenuShowProjectSettings}
                   >
                     <Settings2Icon size={16} />
                     Project Settings
+                  </button>
+                  <button
+                    className="menu-item"
+                    onClick={() => navigate("/projects")}
+                  >
+                    <ChartNoAxesGanttIcon size={16} />
+                    All Projects
                   </button>
                 </div>
               )}

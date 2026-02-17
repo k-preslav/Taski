@@ -129,6 +129,7 @@
 
 .menu-item:hover {
     background: #333;
+
     color: #fff;
 }
 
@@ -146,13 +147,14 @@
     text-transform: uppercase;
     letter-spacing: 0.05em;
     color: #666;
-    font-weight: 700;
+    font-weight: 600;
+    line-height: 1;
 }
 
 .menu-divider {
     height: 1px;
     background: #333;
-    margin: 6px 0;
+    margin: 3px 0;
 }
 
 @keyframes menu-pop {
@@ -160,6 +162,7 @@
         opacity: 0;
         transform: translateY(-8px) scale(0.98);
     }
+
     to {
         opacity: 1;
         transform: translateY(0) scale(1);
