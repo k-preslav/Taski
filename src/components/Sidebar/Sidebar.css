@@ -1,6 +1,6 @@
 .sidebar {
     width: 295px;
-    height: 100vh;
+    height: 100%; /* Changed from 100vh to fit the mainContentArea */
     box-sizing: border-box;
     background-color: #242424;
     border-right: 1px solid #333;
@@ -16,6 +16,7 @@
     font-size: 20px;
     font-weight: 600;
     margin-bottom: 12px;
+    flex-shrink: 0;
 }
 
 .cardList {

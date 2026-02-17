@@ -17,6 +17,7 @@ export default function TopBar({
   projectName,
   showProjectMenu = true,
   showAccountIcon = true,
+  onProjectMenuShowProjectSettings,
 }) {
   const [openProjectMenu, setOpenProjectMenu] = useState(false);
   const [openAccountMenu, setOpenAccountMenu] = useState(false);
@@ -87,7 +88,10 @@ export default function TopBar({
                     <ChartNoAxesGanttIcon size={16} />
                     All Projects
                   </button>
-                  <button className="menu-item">
+                  <button
+                    className="menu-item"
+                    onClick={onProjectMenuShowProjectSettings}
+                  >
                     <Settings2Icon size={16} />
                     Project Settings
                   </button>

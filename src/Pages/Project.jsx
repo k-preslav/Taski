@@ -5,9 +5,10 @@ import TopBar from "../components/TopBar/TopBar";
 import SideBar from "../components/Sidebar/Sidebar";
 import { ID, tablesDB, Query } from "../appwrite/config";
 import GithubIcon from "../components/GithubIcon";
-import { FrownIcon, Loader2Icon } from "lucide-react";
+import { FrownIcon, LockIcon } from "lucide-react";
 import Button from "../components/Button/Button";
 import Spinner from "../components/Spinner/Spinner";
+import ProjectSettings from "../components/ProjectSettings/ProjectSettings";
 
 function Project() {
   const { checkUser, user } = useAuth();
@@ -15,12 +16,14 @@ function Project() {
   const [projectData, setProjectData] = useState(null);
   const [cards, setCards] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [showProjectSettings, setShowProjectSettings] = useState(false);
+  const [hasPermission, setHasPermission] = useState(true);
+  const [isUserOwner, setIsUserOwner] = useState(false);
 
   const navigate = useNavigate();
 
   const getCards = async () => {
     if (!projectId) return;
-
     try {
       const response = await tablesDB.listRows({
         databaseId: "taski",
@@ -42,21 +45,20 @@ function Project() {
         });
       });
     } catch (error) {
-      console.error("Failed to fetch cards:", error);
+      console.error(error);
     }
   };
 
   useEffect(() => {
     let isMounted = true;
-
     const loadData = async () => {
       setIsLoading(true);
+      setHasPermission(true);
       await checkUser();
       if (!projectId) {
         if (isMounted) setIsLoading(false);
         return;
       }
-
       try {
         const response = await tablesDB.getRow({
           databaseId: "taski",
@@ -64,8 +66,16 @@ function Project() {
           rowId: projectId,
         });
 
-        if (response.ownerId !== user.$id) {
-          navigate("/projects");
+        if (!response.isPublic && response.ownerId !== user.$id) {
+          if (isMounted) {
+            setHasPermission(false);
+            setIsLoading(false);
+          }
+          return;
+        }
+
+        if (response.ownerId === user.$id) {
+          setIsUserOwner(true);
         }
 
         if (isMounted) {
@@ -73,15 +83,12 @@ function Project() {
           await getCards();
         }
       } catch (error) {
-        console.error("Failed to fetch project:", error);
         if (isMounted) setProjectData(null);
       } finally {
         if (isMounted) setIsLoading(false);
       }
     };
-
     loadData();
-
     return () => {
       isMounted = false;
     };
@@ -89,19 +96,15 @@ function Project() {
 
   const handleAddTask = async (isBacklog) => {
     if (!projectId) return;
-
     const tempId = ID.unique();
     const newCard = {
       $id: tempId,
       content: "",
       isBacklog,
       projectId,
-      edit: true, // client-only flag to keep it in edit mode immediately
+      edit: true,
     };
-
-    // Show the optimistic card in UI
     setCards((prev) => [...prev, newCard]);
-
     try {
       await tablesDB.createRow({
         databaseId: "taski",
@@ -113,56 +116,86 @@ function Project() {
           projectId: newCard.projectId,
         },
       });
-
       await getCards();
     } catch (error) {
-      console.error("Creation failed:", error);
       setCards((prev) => prev.filter((card) => card.$id !== tempId));
-      alert("Failed to add task. Please try again.");
     }
+  };
+
+  const updateProject = async (name, isPublic) => {
+    await tablesDB.updateRow({
+      databaseId: "taski",
+      tableId: "projects",
+      rowId: projectData.$id,
+      data: { name, isPublic },
+    });
+    setProjectData((prev) => ({ ...prev, name, isPublic }));
+  };
+
+  const deleteProject = async () => {
+    await tablesDB.deleteRow({
+      databaseId: "taski",
+      tableId: "projects",
+      rowId: projectData.$id,
+    });
+    navigate("/projects");
   };
 
   return (
     <div style={styles.layout}>
       <TopBar
         projectName={projectData?.name}
-        showProjectMenu={projectData?.name || false}
+        showProjectMenu={!!projectData && isUserOwner}
+        onProjectMenuShowProjectSettings={() => setShowProjectSettings(true)}
       />
-
-      {isLoading ? (
-        <div style={styles.spinnerWrap}>
-          <Spinner size={36} color="#666" />
-        </div>
-      ) : projectData?.name == null ? (
-        <div style={styles.projectNoExisto}>
-          <FrownIcon size={64} color="#666" />
-          <p
-            style={{
-              fontSize: "24px",
-              fontWeight: "500",
-              color: "#666",
-              marginBottom: "26px",
-            }}
-          >
-            This project no longer exist
-          </p>
-
-          <Button onClick={() => navigate("/projects")}>
-            <p style={{ fontSize: "16px", fontWeight: "400", color: "#fff" }}>
-              See all projects
-            </p>
-          </Button>
-        </div>
-      ) : (
-        <>
-          <SideBar
-            onAddTask={() => handleAddTask(true)}
-            projectData={projectData}
-            cards={cards}
-            setCards={setCards}
-          />
-        </>
-      )}
+      <div style={styles.mainContentArea}>
+        {isLoading ? (
+          <div style={styles.spinnerWrap}>
+            <Spinner size={36} color="#666" />
+          </div>
+        ) : !hasPermission ? (
+          <div style={styles.centeredState}>
+            <LockIcon size={64} color="#666" />
+            <p style={styles.errorText}>Access Denied</p>
+            <Button onClick={() => navigate("/projects")}>
+              <span style={{ fontSize: "16px", color: "#fff" }}>
+                Back to Projects
+              </span>
+            </Button>
+          </div>
+        ) : !projectData ? (
+          <div style={styles.centeredState}>
+            <FrownIcon size={64} color="#666" />
+            <p style={styles.errorText}>Project not found</p>
+            <Button onClick={() => navigate("/projects")}>
+              <span style={{ fontSize: "16px", color: "#fff" }}>
+                Back to Projects
+              </span>
+            </Button>
+          </div>
+        ) : (
+          <>
+            <SideBar
+              onAddTask={() => handleAddTask(true)}
+              projectData={projectData}
+              cards={cards}
+              setCards={setCards}
+            />
+            <div style={styles.canvas} />
+            {showProjectSettings && (
+              <ProjectSettings
+                project={projectData}
+                onClose={() => setShowProjectSettings(false)}
+                onSave={(name, isPublic) => {
+                  updateProject(name, isPublic);
+                  setShowProjectSettings(false);
+                }}
+                onDelete={deleteProject}
+              />
+            )}
+          </>
+        )}
+      </div>
       <GithubIcon />
     </div>
   );
@@ -173,24 +206,42 @@ const styles = {
     display: "flex",
     flexDirection: "column",
     height: "100vh",
-    width: "100%",
+    width: "100vw",
     backgroundColor: "#1a1a1a",
+    overflow: "hidden",
   },
-  projectNoExisto: {
+  mainContentArea: {
     display: "flex",
-    flexDirection: "column",
-    gap: "16px",
-    justifyContent: "center",
-    alignItems: "center",
+    flexDirection: "row",
+    height: "calc(100vh - 56px)",
+    width: "100%",
+    position: "relative",
+    overflow: "hidden",
+  },
+  canvas: {
+    flex: 1,
     height: "100%",
-    fontSize: "24px",
-    color: "#fff",
+    overflow: "auto",
   },
   spinnerWrap: {
+    flex: 1,
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    height: "100%",
+  },
+  centeredState: {
+    flex: 1,
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: "16px",
+  },
+  errorText: {
+    fontSize: "24px",
+    fontWeight: "500",
+    color: "#666",
+    marginBottom: "26px",
   },
 };
 

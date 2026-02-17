@@ -1,0 +1,183 @@
+.project-settings {
+    width: 295px;
+    height: 100%;
+    box-sizing: border-box;
+    background-color: #242424;
+    border-left: 1px solid #333;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    animation: slideInRight 0.25s ease forwards;
+    overflow: hidden;
+    position: relative;
+    z-index: 101;
+}
+
+.settings-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    flex-shrink: 0;
+}
+
+.settings-header__title {
+    color: #fff;
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.settings-content {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    flex: 1;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.settings-content::-webkit-scrollbar {
+    width: 4px;
+}
+
+.settings-content::-webkit-scrollbar-thumb {
+    background: #333;
+    border-radius: 10px;
+}
+
+.settings-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.settings-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #666;
+    font-weight: 700;
+}
+
+.settings-input {
+    background: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 8px;
+    padding: 10px 12px;
+    color: #fff;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+    font-family: inherit;
+}
+
+.settings-input:focus {
+    border-color: #444;
+}
+
+.settings-footer {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding-top: 16px;
+    border-top: 1px solid #333;
+    flex-shrink: 0;
+}
+
+.pill-toggle {
+    position: relative;
+    display: flex;
+    background: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 10px;
+    padding: 2px;
+    height: 36px;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+.pill-toggle__slider {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: calc(50% - 2px);
+    height: calc(100% - 4px);
+    background: #333;
+    border-radius: 8px;
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1;
+}
+
+.pill-toggle__slider--right {
+    transform: translateX(100%);
+}
+
+.pill-toggle__btn {
+    position: relative;
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: #666;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    z-index: 2;
+    transition: color 0.2s;
+}
+
+.pill-toggle__btn.is-active {
+    color: #fff;
+}
+
+.pill-toggle__btn:hover:not(.is-active) {
+    color: #888;
+}
+
+.btn {
+    background: #2a2a2a;
+    border: 1px solid #333;
+    border-radius: 8px;
+    padding: 10px;
+    color: #eee;
+    font-size: 14px;
+    font-weight: 400;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s;
+}
+
+.btn:hover {
+    background: #2d2d2d;
+}
+
+.btn-danger {
+    background: #3d2323;
+    color: #ff6b6b;
+    border: 1px solid #542b2b;
+    padding: 10px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 400;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s;
+}
+
+.btn-danger:hover {
+    background: #4d2a2a;
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+    }
+    to {
+        transform: translateX(0);
+    }
+}
