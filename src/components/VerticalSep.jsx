@@ -6,11 +6,10 @@ export default function VerticalSep() {
 
 const styles = {
   verticalSep: {
-    width: "2.8px",
+    width: "1.8px",
     height: "auto",
     alignSelf: "stretch",
-    backgroundColor: "#434343",
+    backgroundColor: "#393939",
     margin: "0 4px",
-    borderRadius: "100px",
   },
 };

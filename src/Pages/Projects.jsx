@@ -5,27 +5,20 @@ import { useAuth } from "../context/AuthContext";
 import AddButton from "../components/AddButton/AddButton";
 import { ID, Query, tablesDB } from "../appwrite/config";
 import { useNavigate } from "react-router-dom";
-import {
-  PartyPopperIcon,
-  SquircleDashed,
-  SquircleDashedIcon,
-} from "lucide-react";
+import { SquircleDashedIcon } from "lucide-react";
 import GithubIcon from "../components/GithubIcon";
 import Spinner from "../components/Spinner/Spinner";
 
 export default function Projects() {
-  const { checkUser } = useAuth();
-  const [projects, setProjects] = useState([]);
-
+  const { user, checkUser } = useAuth();
   const navigate = useNavigate();
-  const { user } = useAuth();
-
+  const [projects, setProjects] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const getProjects = async () => {
+    if (!user?.$id) return;
     try {
       setIsLoading(true);
-
       const response = await tablesDB.listRows({
         databaseId: "taski",
         tableId: "projects",
@@ -38,6 +31,7 @@ export default function Projects() {
       }, 300);
     } catch (error) {
       console.error(error);
+      setIsLoading(false);
     }
   };
 
@@ -50,7 +44,6 @@ export default function Projects() {
   const handleSave = async (oldId, newName) => {
     try {
       const realId = ID.unique();
-
       const response = await tablesDB.createRow({
         databaseId: "taski",
         tableId: "projects",
@@ -75,23 +68,25 @@ export default function Projects() {
   useEffect(() => {
     checkUser();
     getProjects();
-  }, []);
+  }, [user?.$id]);
 
   return (
-    <div style={styles.page}>
+    <div style={styles.pageWrapper}>
       <TopBar showProjectMenu={false} />
-      <div style={styles.content}>
-        <p style={styles.header}>My Projects</p>
-        <div style={styles.projects}>
-          {isLoading ? (
-            <div style={styles.loadingContainer}>
-              <Spinner color="#696969" />
-            </div>
-          ) : (
-            <>
-              <div style={styles.listContainer}>
-                {projects.length > 0 ? (
-                  projects.map((project) => (
+
+      <div style={styles.main}>
+        <div style={styles.container}>
+          <h1 style={styles.heading}>My Projects</h1>
+
+          <div style={styles.card}>
+            <div style={styles.listContainer}>
+              {isLoading ? (
+                <div style={styles.centerBox}>
+                  <Spinner color="#666" />
+                </div>
+              ) : projects.length > 0 ? (
+                <div style={styles.grid}>
+                  {projects.map((project) => (
                     <ProjectButton
                       key={project.$id}
                       name={project.name}
@@ -101,98 +96,97 @@ export default function Projects() {
                         navigate(`/project/${project.$id}`);
                       }}
                     />
-                  ))
-                ) : (
-                  <div style={styles.noProjects}>
-                    <SquircleDashedIcon
-                      size={36}
-                      strokeWidth={1.7}
-                      color="#696969"
-                    />
-                    <p
-                      style={{
-                        color: "#696969",
-                        transform: "translateX(-8px)",
-                      }}
-                    >
-                      No projects here, yet
-                    </p>
-                  </div>
-                )}
-              </div>
-              <div style={styles.bottom}>
-                <AddButton onClick={addProject} />
-              </div>
-            </>
-          )}
+                  ))}
+                </div>
+              ) : (
+                <div style={styles.centerBox}>
+                  <SquircleDashedIcon size={32} color="#444" />
+                  <p style={styles.emptyText}>No projects yet</p>
+                </div>
+              )}
+            </div>
+
+            <div style={styles.footer}>
+              <AddButton onClick={addProject} />
+            </div>
+          </div>
         </div>
       </div>
+
       <GithubIcon />
     </div>
   );
 }
 
 const styles = {
-  page: {
+  pageWrapper: {
+    minHeight: "100vh",
+    width: "100%",
+    backgroundColor: "#1a1a1a",
     display: "flex",
     flexDirection: "column",
-    minHeight: "100vh",
-    backgroundColor: "#222",
   },
-  content: {
+  main: {
     flex: 1,
     display: "flex",
+    flexDirection: "column",
     alignItems: "center",
     justifyContent: "center",
-    flexDirection: "column",
+    padding: "40px 20px",
   },
-  header: {
-    fontSize: "42px",
-    fontWeight: "500",
-    marginBottom: "10vh",
-    color: "white",
-    userSelect: "none",
-  },
-  projects: {
-    width: "20vw",
-    height: "55vh",
-    minWidth: "320px",
-    backgroundColor: "#282828",
+  container: {
+    width: "100%",
+    maxWidth: "400px",
     display: "flex",
-    borderRadius: "10px",
-    padding: "10px",
     flexDirection: "column",
+  },
+  heading: {
+    fontSize: "32px",
+    fontWeight: "600",
+    color: "#fff",
+    marginBottom: "32px",
+    textAlign: "left",
+  },
+  card: {
+    backgroundColor: "#242424",
+    borderRadius: "16px",
+    border: "1px solid #333",
+    display: "flex",
+    flexDirection: "column",
+    height: "480px",
+    boxShadow: "0 10px 30px rgba(0,0,0,0.3)",
   },
   listContainer: {
-    flex: 1,
+    padding: "20px",
     overflowY: "auto",
+    flex: 1,
+  },
+  grid: {
     display: "flex",
     flexDirection: "column",
-    gap: "10px",
+    gap: "8px",
   },
-  bottom: {
-    marginTop: "auto",
-    display: "flex",
-    justifyContent: "center",
-    transform: "translateY(7px)",
-  },
-
-  noProjects: {
-    display: "flex",
-    flexDirection: "column",
-    justifyContent: "center",
-    alignItems: "center",
+  centerBox: {
     height: "100%",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
     gap: "12px",
-    fontSize: "18px",
-    fontStyle: "italic",
-    fontWeight: "500",
   },
-
-  loadingContainer: {
+  emptyText: {
+    color: "#666",
+    fontSize: "14px",
+    margin: 0,
+  },
+  footer: {
+    padding: "16px",
+    borderTop: "1px solid #333",
     display: "flex",
     justifyContent: "center",
-    alignItems: "center",
-    height: "100%",
+    backgroundColor: "rgba(0,0,0,0.1)",
+    borderBottomLeftRadius: "16px",
+    borderBottomRightRadius: "16px",
+    flexShrink: 0,
   },
 };

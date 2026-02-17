@@ -145,7 +145,7 @@ export default function TopBar({
             aria-hidden="true"
             style={{
               height: "1px",
-              background: "#404040",
+              background: "#333",
               margin: "6px 0",
               width: "100%",
               borderRadius: "1px",

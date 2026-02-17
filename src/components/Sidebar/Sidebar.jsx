@@ -40,7 +40,12 @@ export default function SideBar({ onAddTask, cards, setCards }) {
           ))
         ) : (
           <div className="noBacklog" onDoubleClick={handleDoubleClick}>
-            <PartyPopperIcon size={36} strokeWidth={1.7} color="#696969" />
+            <PartyPopperIcon
+              size={36}
+              strokeWidth={1.7}
+              color="#444"
+              style={{ transform: "translateX(8px)" }}
+            />
             <p className="noBacklogText">All cleared!</p>
           </div>
         )}

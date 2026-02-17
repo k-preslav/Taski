@@ -131,16 +131,16 @@ function Project() {
 
       {isLoading ? (
         <div style={styles.spinnerWrap}>
-          <Spinner size={36} color="#696969" />
+          <Spinner size={36} color="#666" />
         </div>
       ) : projectData?.name == null ? (
         <div style={styles.projectNoExisto}>
-          <FrownIcon size={64} color="#696969" />
+          <FrownIcon size={64} color="#666" />
           <p
             style={{
               fontSize: "24px",
               fontWeight: "500",
-              color: "#696969",
+              color: "#666",
               marginBottom: "26px",
             }}
           >
@@ -174,7 +174,7 @@ const styles = {
     flexDirection: "column",
     height: "100vh",
     width: "100%",
-    backgroundColor: "#222222",
+    backgroundColor: "#1a1a1a",
   },
   projectNoExisto: {
     display: "flex",

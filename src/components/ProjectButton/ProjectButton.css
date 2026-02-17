@@ -1,20 +1,20 @@
 .project-button {
-    background: #323232;
+    background: #282828;
     color: #fff;
     padding: 14px;
     border-radius: 7px;
     width: 100%;
     cursor: pointer;
     transition: background 0.15s;
-    box-shadow: 0 1px 8px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 1px 8px rgba(0, 0, 0, 0.3);
     box-sizing: border-box;
+    border: 1px solid #333;
 }
 
 .project-button:hover {
-    background: #3b3b3b;
+    background: #2c2c2c;
 }
 
-/* Layout wrapper for name + bubble: spaced between and vertically centered */
 .project-button__content {
     display: flex;
     align-items: center;
@@ -30,11 +30,12 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    color: #fff;
 }
 
 .project-button__input {
     width: 100%;
-    background: transparent;
+    background: none;
     border: none;
     color: #fff;
     font-family: inherit;

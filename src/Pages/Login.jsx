@@ -123,7 +123,7 @@ const styles = {
     display: "flex",
     flexDirection: "column",
     minHeight: "100vh",
-    backgroundColor: "#222",
+    backgroundColor: "#1a1a1a",
   },
   content: {
     flex: 1,
@@ -155,13 +155,13 @@ const styles = {
     height: "210px",
     padding: "10px",
     borderRadius: "12px",
-    backgroundColor: "#282828",
+    backgroundColor: "#242424",
     boxShadow: "0 4px 14px rgba(0, 0, 0, 0.15)",
     textAlign: "center",
-
     display: "flex",
     flexDirection: "column",
     gap: "8px",
+    border: "1px solid #333",
   },
 
   or: {
@@ -175,12 +175,12 @@ const styles = {
     userSelect: "none",
   },
   orText: {
-    color: "#585858",
+    color: "#666",
   },
   divider: {
     width: "30%",
     height: "1px",
-    backgroundColor: "#585858",
+    backgroundColor: "#333",
   },
 
   guest: {
@@ -192,7 +192,7 @@ const styles = {
   },
 
   tos: {
-    color: "#686868",
+    color: "#666",
     fontSize: "14px",
     marginTop: "36px",
     width: "240px",
@@ -201,7 +201,7 @@ const styles = {
   },
 
   tosButton: {
-    color: "#A3A3A3",
+    color: "#666",
     fontSize: "14px",
     textDecoration: "underline",
     cursor: "pointer",
