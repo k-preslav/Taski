@@ -9,7 +9,7 @@ const styles = {
     width: "1.8px",
     height: "auto",
     alignSelf: "stretch",
-    backgroundColor: "#393939",
+    backgroundColor: "var(--border)",
     margin: "0 4px",
   },
 };

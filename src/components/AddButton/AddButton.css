@@ -5,23 +5,23 @@
     width: 100%;
     height: 40px;
     cursor: pointer;
-    color: #666;
+    color: var(--text-muted);
     transition: color 0.25s ease;
 }
 
 .add-button-line {
     flex: 1;
     height: 2px;
-    background-color: #666;
+    background-color: var(--text-muted);
     margin: 0 8px;
     border-radius: 100px;
     transition: background-color 0.25s ease;
 }
 
 .add-button:hover {
-    color: #fff;
+    color: var(--text);
 }
 
 .add-button:hover .add-button-line {
-    background-color: #fff;
+    background-color: var(--text);
 }

@@ -1,0 +1,49 @@
+:root{
+  /* Dark theme (default) */
+  color-scheme: dark;
+  --bg: #1a1a1a;
+  --surface: #242424;
+  --panel: #2a2a2a;
+  --text: #ffffff;
+  --text-muted: #999999;
+  --text-subtle: #aaaaaa;
+  --border: #333333;
+  --button-bg: #2a2a2a;
+  --button-border: #3d3d3d;
+  --danger: #ff6b6b;
+  --danger-bg: #3d2323;
+  --danger-border: #542b2b;
+  --accent: #2854E5;
+  --glass: rgba(255,255,255,0.03);
+  --shadow: 0 10px 30px rgba(0,0,0,0.3);
+  --muted-2: #666666;
+  --warning: #eab308;
+}
+
+/* Light theme overrides */
+:root[data-theme="light"]{
+  color-scheme: light;
+  --bg: #ffffff;
+  --surface: #ffffff;
+  --panel: #f3f4f6;
+  --text: #0b1220;
+  --text-muted: #6b7280;
+  --text-subtle: #9aa0a6;
+  --border: #e6e6e6;
+  --button-bg: #f3f4f6;
+  --button-border: #e6e7ea;
+  --danger: #b91c1c;
+  --danger-bg: #fee2e2;
+  --danger-border: #fca5a5;
+  --accent: #2854E5;
+  --glass: rgba(2,6,23,0.04);
+  --shadow: 0 10px 30px rgba(2,6,23,0.06);
+  --muted-2: #9aa0a6;
+  --warning: #9a6700;
+}
+
+/* Smooth, subtle transitions when switching theme */
+:root,
+:root * {
+  transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease;
+}

@@ -112,7 +112,7 @@ const styles = {
   pageWrapper: {
     minHeight: "100vh",
     width: "100%",
-    backgroundColor: "#1a1a1a",
+    backgroundColor: "var(--bg)",
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
@@ -128,7 +128,7 @@ const styles = {
     display: "flex",
     alignItems: "center",
     gap: "4px",
-    color: "#666",
+    color: "var(--text-muted)",
     cursor: "pointer",
     fontSize: "14px",
     marginBottom: "24px",
@@ -138,17 +138,17 @@ const styles = {
   heading: {
     fontSize: "32px",
     fontWeight: "600",
-    color: "#fff",
+    color: "var(--text)",
     marginBottom: "32px",
   },
   card: {
-    backgroundColor: "#242424",
+    backgroundColor: "var(--surface)",
     borderRadius: "12px",
     padding: "24px",
     display: "flex",
     gap: "24px",
     alignItems: "flex-start",
-    border: "1px solid #333",
+    border: "1px solid var(--border)",
   },
   avatarSection: {
     flexShrink: 0,
@@ -168,7 +168,7 @@ const styles = {
     fontSize: "11px",
     textTransform: "uppercase",
     letterSpacing: "0.05em",
-    color: "#666",
+    color: "var(--text-muted)",
     fontWeight: "700",
   },
   nameRow: {
@@ -179,16 +179,16 @@ const styles = {
   },
   nameText: {
     fontSize: "18px",
-    color: "#fff",
+    color: "var(--text)",
   },
   editIcon: {
-    color: "#666",
+    color: "var(--text-muted)",
     cursor: "pointer",
   },
   input: {
     fontSize: "18px",
     fontFamily: "inherit",
-    color: "#fff",
+    color: "var(--text)",
     background: "none",
     border: "none",
     outline: "none",
@@ -197,17 +197,17 @@ const styles = {
   },
   emailText: {
     fontSize: "16px",
-    color: "#aaa",
+    color: "var(--text-muted)",
   },
   divider: {
     height: "1px",
-    backgroundColor: "#333",
+    backgroundColor: "var(--border)",
     width: "100%",
   },
   logoutBtn: {
-    backgroundColor: "#2a2a2a",
-    border: "1px solid #3d3d3d",
-    color: "#ff6b6b",
+    backgroundColor: "var(--button-bg)",
+    border: "1px solid var(--button-border)",
+    color: "var(--danger)",
     marginTop: "32px",
     padding: "12px",
     display: "flex",
@@ -217,8 +217,8 @@ const styles = {
     cursor: "pointer",
   },
   error: {
-    color: "#ff6b6b",
+    color: "var(--danger)",
     fontSize: "13px",
     marginTop: "8px",
-  },
+  }
 };

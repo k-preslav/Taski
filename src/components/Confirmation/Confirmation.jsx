@@ -17,7 +17,7 @@ export default function Confirmation({
         <div className="confirm-header">
           <AlertTriangle
             size={48}
-            color={isDestructive ? "#ff4d4d" : "#eab308"}
+            color={isDestructive ? "var(--danger)" : "var(--warning)"}
           />
           <p className="confirm-text">{title || "Are you sure?"}</p>
         </div>

@@ -20,10 +20,10 @@
     display: flex;
     flex-direction: column;
     gap: 24px;
-    background: #242424;
+    background: var(--surface);
     padding: 32px;
     border-radius: 16px;
-    border: 1px solid #333;
+    border: 1px solid var(--border);
     box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.7);
     animation: confirmPop 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -36,7 +36,7 @@
 }
 
 .confirm-text {
-    color: #fff;
+    color: var(--text);
     font-size: 18px;
     font-weight: 500;
     margin: 0;
@@ -52,9 +52,9 @@
 
 .btn-confirm-destructive {
     flex: 1;
-    background: #3d2323;
-    color: #ff6b6b;
-    border: 1px solid #542b2b;
+    background: var(--danger-bg);
+    color: var(--danger);
+    border: 1px solid var(--danger-border);
     padding: 12px;
     border-radius: 8px;
     font-size: 14px;
@@ -64,14 +64,14 @@
 }
 
 .btn-confirm-destructive:hover {
-    background: #4d2a2a;
+    background: var(--danger-bg);
 }
 
 .btn-confirm {
     flex: 1;
-    background: #1a1a1a;
-    color: #ccc;
-    border: 1px solid #333;
+    background: var(--bg);
+    color: var(--text-muted);
+    border: 1px solid var(--border);
     padding: 12px;
     border-radius: 8px;
     font-size: 14px;
@@ -81,15 +81,15 @@
 }
 
 .btn-confirm:hover {
-    color: #fff;
-    border-color: #444;
+    color: var(--text);
+    border-color: var(--border);
 }
 
 .btn-cancel {
     flex: 1;
-    background: #1a1a1a;
-    color: #ccc;
-    border: 1px solid #333;
+    background: var(--bg);
+    color: var(--text-muted);
+    border: 1px solid var(--border);
     padding: 12px;
     border-radius: 8px;
     font-size: 14px;
@@ -99,8 +99,8 @@
 }
 
 .btn-cancel:hover {
-    color: #fff;
-    border-color: #444;
+    color: var(--text);
+    border-color: var(--border);
 }
 
 @keyframes confirmPop {

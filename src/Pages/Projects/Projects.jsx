@@ -1,13 +1,15 @@
 import React, { useEffect, useState } from "react";
-import TopBar from "../components/TopBar/TopBar";
-import ProjectButton from "../components/ProjectButton/ProjectButton";
-import { useAuth } from "../context/AuthContext";
-import AddButton from "../components/AddButton/AddButton";
-import { ID, Query, tablesDB } from "../appwrite/config";
+import TopBar from "../../components/TopBar/TopBar";
+import ProjectButton from "../../components/ProjectButton/ProjectButton";
+import { useAuth } from "../../context/AuthContext";
+import AddButton from "../../components/AddButton/AddButton";
+import { ID, Query, tablesDB } from "../../appwrite/config";
 import { useNavigate } from "react-router-dom";
 import { SquircleDashedIcon } from "lucide-react";
-import GithubIcon from "../components/GithubIcon";
-import Spinner from "../components/Spinner/Spinner";
+import GithubIcon from "../../components/GithubIcon";
+import Spinner from "../../components/Spinner/Spinner";
+
+import "./Projects.css";
 
 export default function Projects() {
   const { user, checkUser } = useAuth();
@@ -71,21 +73,21 @@ export default function Projects() {
   }, [user?.$id]);
 
   return (
-    <div style={styles.pageWrapper}>
+    <div className="projects-page">
       <TopBar showProjectMenu={false} />
 
-      <div style={styles.main}>
-        <div style={styles.container}>
-          <h1 style={styles.heading}>My Projects</h1>
+      <div className="projects-main">
+        <div className="projects-container">
+          <h1 className="projects-heading">My Projects</h1>
 
-          <div style={styles.card}>
-            <div style={styles.listContainer}>
+          <div className="projects-card">
+            <div className="projects-list">
               {isLoading ? (
-                <div style={styles.centerBox}>
-                  <Spinner color="#666" />
+                <div className="projects-center">
+                  <Spinner color="var(--text-muted)" />
                 </div>
               ) : projects.length > 0 ? (
-                <div style={styles.grid}>
+                <div className="projects-grid">
                   {projects.map((project) => (
                     <ProjectButton
                       key={project.$id}
@@ -99,14 +101,14 @@ export default function Projects() {
                   ))}
                 </div>
               ) : (
-                <div style={styles.centerBox}>
-                  <SquircleDashedIcon size={32} color="#444" />
-                  <p style={styles.emptyText}>No projects yet</p>
+                <div className="projects-center">
+                  <SquircleDashedIcon size={32} color="var(--border)" />
+                  <p className="projects-empty-text">No projects yet</p>
                 </div>
               )}
             </div>
 
-            <div style={styles.footer}>
+            <div className="projects-footer">
               <AddButton onClick={addProject} />
             </div>
           </div>
@@ -118,76 +120,3 @@ export default function Projects() {
   );
 }
 
-const styles = {
-  pageWrapper: {
-    minHeight: "100vh",
-    width: "100%",
-    backgroundColor: "#1a1a1a",
-    display: "flex",
-    flexDirection: "column",
-  },
-  main: {
-    flex: 1,
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: "40px 20px",
-  },
-  container: {
-    width: "100%",
-    maxWidth: "400px",
-    display: "flex",
-    flexDirection: "column",
-  },
-  heading: {
-    fontSize: "32px",
-    fontWeight: "600",
-    color: "#fff",
-    marginBottom: "32px",
-    textAlign: "left",
-  },
-  card: {
-    backgroundColor: "#242424",
-    borderRadius: "16px",
-    border: "1px solid #333",
-    display: "flex",
-    flexDirection: "column",
-    height: "480px",
-    boxShadow: "0 10px 30px rgba(0,0,0,0.3)",
-  },
-  listContainer: {
-    padding: "20px",
-    overflowY: "auto",
-    flex: 1,
-  },
-  grid: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "8px",
-  },
-  centerBox: {
-    height: "100%",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: "12px",
-  },
-  emptyText: {
-    color: "#595959",
-    fontSize: "14px",
-    fontWeight: "500",
-    margin: 0,
-  },
-  footer: {
-    padding: "16px",
-    borderTop: "1px solid #333",
-    display: "flex",
-    justifyContent: "center",
-    backgroundColor: "rgba(0,0,0,0.1)",
-    borderBottomLeftRadius: "16px",
-    borderBottomRightRadius: "16px",
-    flexShrink: 0,
-  },
-};

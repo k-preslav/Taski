@@ -123,7 +123,7 @@ const styles = {
     display: "flex",
     flexDirection: "column",
     minHeight: "100vh",
-    backgroundColor: "#1a1a1a",
+    backgroundColor: "var(--bg)",
   },
   content: {
     flex: 1,
@@ -137,7 +137,7 @@ const styles = {
     fontSize: "3.5rem",
     fontWeight: "400",
     marginBottom: "6rem",
-    color: "#fff",
+    color: "var(--text)",
     display: "flex",
     gap: "0.5rem",
     alignItems: "center",
@@ -145,7 +145,7 @@ const styles = {
   },
 
   headerTaski: {
-    color: "#fff",
+    color: "var(--text)",
     fontWeight: "500",
     fontStyle: "italic",
   },
@@ -155,13 +155,13 @@ const styles = {
     height: "210px",
     padding: "10px",
     borderRadius: "12px",
-    backgroundColor: "#242424",
+    backgroundColor: "var(--surface)",
     boxShadow: "0 4px 14px rgba(0, 0, 0, 0.15)",
     textAlign: "center",
     display: "flex",
     flexDirection: "column",
     gap: "8px",
-    border: "1px solid #333",
+    border: "1px solid var(--border)",
   },
 
   or: {
@@ -175,16 +175,16 @@ const styles = {
     userSelect: "none",
   },
   orText: {
-    color: "#666",
+    color: "var(--text-muted)",
   },
   divider: {
     width: "30%",
     height: "1px",
-    backgroundColor: "#333",
+    backgroundColor: "var(--border)",
   },
 
   guest: {
-    color: "#DADADA",
+    color: "var(--text)",
     fontSize: "14px",
     transform: "translateY(-5px)",
     cursor: "pointer",
@@ -192,7 +192,7 @@ const styles = {
   },
 
   tos: {
-    color: "#666",
+    color: "var(--text-muted)",
     fontSize: "14px",
     marginTop: "36px",
     width: "240px",
@@ -201,9 +201,9 @@ const styles = {
   },
 
   tosButton: {
-    color: "#666",
+    color: "var(--text-muted)",
     fontSize: "14px",
     textDecoration: "underline",
     cursor: "pointer",
-  },
+  }
 };

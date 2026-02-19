@@ -1,22 +1,24 @@
 .button {
     padding: 15px 20px;
-    border: 1px solid #3d3d3d;
+    border: 1px solid var(--button-border);
     border-radius: 8px;
     cursor: pointer;
-    background-color: #2a2a2a;
-    color: #fff;
+    background-color: var(--button-bg);
+    color: var(--text);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12);
     transition:
         background-color 0.18s ease,
-        border-color 0.18s ease;
+        border-color 0.18s ease,
+        filter 0.18s ease;
     display: flex;
     align-items: center;
     gap: 12px;
 }
 
 .button:hover {
-    background-color: #3b3b3b;
-    border-color: #474747;
+    background-color: var(--panel);
+    border-color: var(--button-border);
+    filter: brightness(1.02);
 }
 
 .disabled {
@@ -24,6 +26,6 @@
     cursor: default;
 }
 .disabled:hover {
-    background-color: #2a2a2a;
-    border-color: #3d3d3d;
+    background-color: var(--button-bg);
+    border-color: var(--button-border);
 }

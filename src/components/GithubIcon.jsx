@@ -7,9 +7,9 @@ export default function GithubIcon() {
       href="https://github.com/k-preslav/Taski"
       target="_blank"
       rel="noopener noreferrer"
-      style={styles.container}
+      style={{ ...styles.container, color: "var(--text-muted)" }}
     >
-      <SiGithub color="#fff" size={22} />
+      <SiGithub color="currentColor" size={22} />
     </a>
   );
 }

@@ -12,20 +12,33 @@ export default function ProjectSettings({
   const [name, setName] = useState(project?.name || "");
   const [isPublic, setIsPublic] = useState(project?.isPublic || false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
+
+  const handleClose = () => {
+    setIsClosing(true);
+    setTimeout(() => {
+      onClose();
+    }, 300);
+  };
+
+  const handleSave = () => {
+    onSave(name, isPublic);
+    handleClose();
+  };
 
   return (
     <>
-      <aside className="project-settings">
+      <aside className={`project-settings ${isClosing ? "closing" : ""}`}>
         <div className="settings-header">
           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <Settings2 size={18} color="#fff" />
+            <Settings2 size={18} color="var(--text)" />
             <span className="settings-header__title">Settings</span>
           </div>
           <X
             size={20}
-            color="#898989"
+            color="var(--text-muted)"
             style={{ cursor: "pointer" }}
-            onClick={onClose}
+            onClick={handleClose}
           />
         </div>
 
@@ -49,14 +62,20 @@ export default function ProjectSettings({
               <button
                 type="button"
                 className={`pill-toggle__btn ${!isPublic ? "is-active" : ""}`}
-                onClick={() => setIsPublic(false)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsPublic(false);
+                }}
               >
                 Private
               </button>
               <button
                 type="button"
                 className={`pill-toggle__btn ${isPublic ? "is-active" : ""}`}
-                onClick={() => setIsPublic(true)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsPublic(true);
+                }}
               >
                 Public
               </button>
@@ -65,7 +84,7 @@ export default function ProjectSettings({
         </div>
 
         <div className="settings-footer">
-          <button className="btn" onClick={() => onSave(name, isPublic)}>
+          <button className="btn" onClick={handleSave}>
             <Save size={16} />
             Save Changes
           </button>

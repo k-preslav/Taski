@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import TopBar from "../components/TopBar/TopBar";
-import SideBar from "../components/Sidebar/Sidebar";
 import { ID, tablesDB, Query } from "../appwrite/config";
 import GithubIcon from "../components/GithubIcon";
 import { FrownIcon, LockIcon } from "lucide-react";
@@ -14,40 +13,12 @@ function Project() {
   const { checkUser, user } = useAuth();
   const { id: projectId } = useParams();
   const [projectData, setProjectData] = useState(null);
-  const [cards, setCards] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showProjectSettings, setShowProjectSettings] = useState(false);
   const [hasPermission, setHasPermission] = useState(true);
   const [isUserOwner, setIsUserOwner] = useState(false);
 
   const navigate = useNavigate();
-
-  const getCards = async () => {
-    if (!projectId) return;
-    try {
-      const response = await tablesDB.listRows({
-        databaseId: "taski",
-        tableId: "cards",
-        queries: [Query.equal("projectId", projectId)],
-      });
-
-      setCards((prev) => {
-        const prevMap = (prev || []).reduce((m, c) => {
-          if (c && c.$id) m[c.$id] = c;
-          return m;
-        }, {});
-        return (response.rows || []).map((row) => {
-          const prevCard = prevMap[row.$id];
-          return {
-            ...row,
-            edit: !!(prevCard && prevCard.edit),
-          };
-        });
-      });
-    } catch (error) {
-      console.error(error);
-    }
-  };
 
   useEffect(() => {
     let isMounted = true;
@@ -80,9 +51,9 @@ function Project() {
 
         if (isMounted) {
           setProjectData(response);
-          await getCards();
         }
-      } catch {
+      } catch (err) {
+        console.error(err);
         if (isMounted) setProjectData(null);
       } finally {
         if (isMounted) setIsLoading(false);
@@ -94,37 +65,7 @@ function Project() {
     };
   }, [projectId]);
 
-  const handleAddTask = async (isBacklog) => {
-    if (!projectId) return;
-    const tempId = ID.unique();
-    const newCard = {
-      $id: tempId,
-      content: "",
-      isBacklog,
-      projectId,
-      edit: true,
-    };
-    setCards((prev) => [...prev, newCard]);
-    try {
-      await tablesDB.createRow({
-        databaseId: "taski",
-        tableId: "cards",
-        rowId: tempId,
-        data: {
-          content: newCard.content,
-          isBacklog: newCard.isBacklog,
-          projectId: newCard.projectId,
-        },
-      });
-      await getCards();
-    } catch (error) {
-      setCards((prev) => prev.filter((card) => card.$id !== tempId));
-    }
-  };
-
   const updateProject = async (name, isPublic) => {
-    setShowProjectSettings(false);
-
     await tablesDB.updateRow({
       databaseId: "taski",
       tableId: "projects",
@@ -176,36 +117,30 @@ function Project() {
       <div style={styles.mainContentArea}>
         {isLoading ? (
           <div style={styles.spinnerWrap}>
-            <Spinner size={36} color="#666" />
+            <Spinner size={36} color="var(--text-muted)" />
           </div>
         ) : !hasPermission ? (
           <div style={styles.centeredState}>
-            <LockIcon size={64} color="#666" />
+            <LockIcon size={64} color="var(--text-muted)" />
             <p style={styles.errorText}>Access Denied</p>
             <Button onClick={() => navigate("/projects")}>
-              <span style={{ fontSize: "16px", color: "#fff" }}>
+              <span style={{ fontSize: "16px", color: "var(--text)" }}>
                 Back to Projects
               </span>
             </Button>
           </div>
         ) : !projectData ? (
           <div style={styles.centeredState}>
-            <FrownIcon size={64} color="#666" />
+            <FrownIcon size={64} color="var(--text-muted)" />
             <p style={styles.errorText}>Project not found</p>
             <Button onClick={() => navigate("/projects")}>
-              <span style={{ fontSize: "16px", color: "#fff" }}>
+              <span style={{ fontSize: "16px", color: "var(--text)" }}>
                 Back to Projects
               </span>
             </Button>
           </div>
         ) : (
           <>
-            <SideBar
-              onAddTask={() => handleAddTask(true)}
-              projectData={projectData}
-              cards={cards}
-              setCards={setCards}
-            />
             <div style={styles.canvas} />
             {showProjectSettings && (
               <ProjectSettings
@@ -231,8 +166,15 @@ const styles = {
     flexDirection: "column",
     height: "100vh",
     width: "100vw",
-    backgroundColor: "#1a1a1a",
+    backgroundColor: "var(--bg)",
     overflow: "hidden",
+  },
+  canvas: {
+    flex: 1,
+    display: "flex",
+    flexDirection: "row",
+    height: "100%",
+    width: "100%",
   },
   mainContentArea: {
     display: "flex",
@@ -241,11 +183,6 @@ const styles = {
     width: "100%",
     position: "relative",
     overflow: "hidden",
-  },
-  canvas: {
-    flex: 1,
-    height: "100%",
-    overflow: "auto",
   },
   spinnerWrap: {
     flex: 1,
@@ -264,7 +201,7 @@ const styles = {
   errorText: {
     fontSize: "24px",
     fontWeight: "500",
-    color: "#666",
+    color: "var(--text-muted)",
     marginBottom: "26px",
   },
 };
