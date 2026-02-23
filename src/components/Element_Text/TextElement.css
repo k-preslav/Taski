@@ -1,0 +1,90 @@
+.text-element-wrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  padding: 4px 8px;
+  border-radius: 8px;
+  height: 45px;
+  border: 1px solid transparent;
+  transition: border-color 0.2s;
+  animation: card-pop 0.15s ease;
+}
+
+@keyframes card-pop {
+  from {
+    opacity: 0;
+    scale: 0.98;
+  }
+  to {
+    opacity: 1;
+    scale: 1;
+  }
+}
+
+.text-element-wrapper:hover {
+  border-color: var(--muted-2);
+}
+
+.text-element-wrapper:hover .text-delete-btn {
+  opacity: 1;
+}
+
+.text-element-input {
+  width: 100%;
+  height: 45px;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-family: inherit;
+  font-size: 24px;
+  font-weight: 500;
+  color: var(--text);
+  padding: 0;
+  transform: translateY(-5px);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  resize: none;
+}
+
+.text-element-display {
+  font-size: 24px;
+  font-weight: 500;
+  color: var(--text);
+  user-select: none;
+  display: block;
+  width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.text-placeholder {
+  color: var(--text-muted, #999);
+  font-style: italic;
+  opacity: 0.6;
+}
+
+.text-delete-btn {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  background-color: var(--surface, #fff);
+  border: 1px solid var(--muted-2, #ccc);
+  color: var(--danger, red);
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.2s;
+  padding: 0;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.text-delete-btn:hover {
+  background-color: var(--danger-bg);
+}

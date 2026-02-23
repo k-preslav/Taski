@@ -8,6 +8,8 @@ import { FrownIcon, LockIcon } from "lucide-react";
 import Button from "../components/Button/Button";
 import Spinner from "../components/Spinner/Spinner";
 import ProjectSettings from "../components/ProjectSettings/ProjectSettings";
+import Card from "../components/Element_Card/Card";
+import Canvas from "../components/Canvas/Canvas";
 
 function Project() {
   const { checkUser, user } = useAuth();
@@ -79,18 +81,18 @@ function Project() {
     setShowProjectSettings(false);
     setIsLoading(true);
 
-    // 1. Fetch all cards associated with this project
+    // 1. Fetch all elements associated with this project
     const response = await tablesDB.listRows({
       databaseId: "taski",
-      tableId: "cards",
+      tableId: "elements",
       queries: [Query.equal("projectId", projectData.$id)],
     });
 
-    // 2. Delete each card
+    // 2. Delete each element
     const deletePromises = response.rows.map((card) =>
       tablesDB.deleteRow({
         databaseId: "taski",
-        tableId: "cards",
+        tableId: "elements",
         rowId: card.$id,
       }),
     );
@@ -141,7 +143,7 @@ function Project() {
           </div>
         ) : (
           <>
-            <div style={styles.canvas} />
+            <Canvas projectData={projectData} />
             {showProjectSettings && (
               <ProjectSettings
                 project={projectData}

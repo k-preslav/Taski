@@ -1,0 +1,126 @@
+.card {
+  position: absolute;
+  background-color: var(--surface);
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  width: 260px;
+  min-height: 80px;
+  user-select: none;
+  border: 1px solid var(--border);
+  transition: box-shadow 0.2s ease;
+  animation: card-pop 0.15s ease;
+}
+@keyframes card-pop {
+  from {
+    opacity: 0;
+    scale: 0.98;
+  }
+  to {
+    opacity: 1;
+    scale: 1;
+  }
+}
+
+.header {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: grab;
+}
+
+.headerText {
+  flex-grow: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text);
+  transform: translateY(1px);
+}
+
+.titleEditor {
+  flex-grow: 1;
+  background: transparent;
+  border: 1px solid var(--accent-color);
+  border-radius: 4px;
+  padding: 2px 0;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text);
+  font-family: inherit;
+  outline: none;
+  width: 100%;
+}
+
+.card .headerIcon {
+  flex-shrink: 0;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 6px;
+  opacity: 0;
+  transform: translateX(4px);
+  transition: all 0.15s ease-in-out;
+}
+.card:hover .headerIcon {
+  opacity: 1;
+}
+.card .headerIcon:hover {
+  background-color: var(--danger-bg);
+}
+
+.content {
+  padding: 7px 12px;
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.5;
+  cursor: default;
+}
+
+.checkboxLine {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.checkboxLine input[type="checkbox"] {
+  margin-top: 4px;
+}
+
+.heading {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  margin: 12px 0 6px;
+}
+
+.separator {
+  height: 1px;
+  background-color: var(--border);
+  margin: 10px 0 12px 0;
+}
+
+.bulletpoint {
+  position: relative;
+  margin-left: 16px;
+}
+
+.contentEditor {
+  width: 100%;
+  background: transparent;
+  border: none;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 14px;
+  resize: none;
+  outline: none;
+  line-height: 1.5;
+  margin-bottom: -6px;
+}
+
+.emptyLine {
+  height: 0.8em;
+}
