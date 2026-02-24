@@ -1,21 +1,21 @@
 import React, { useState, useRef, useEffect } from "react";
 import Card from "../Element_Card/Card";
 import TextElement from "../Element_Text/TextElement";
-import { Query, tablesDB } from "../../appwrite/config";
-import { ID } from "appwrite";
+import client, { Query, realtime, tablesDB } from "../../appwrite/config";
+import { Channel, ID, Realtime } from "appwrite";
 import CanvasTools from "./CanvasTools";
 import { useAuth } from "../../context/AuthContext";
 
-export default function Canvas({ projectData }) {
+export default function Canvas({ projectData, isOwner }) {
   const canvasRef = useRef(null);
   const [camera, setCamera] = useState({ x: 0, y: 0 });
   const [panning, setPanning] = useState(false);
   const panOffset = useRef({ x: 0, y: 0 });
   const [elements, setElements] = useState([]);
 
-  const {user} = useAuth();
+  const { user } = useAuth();
 
-  const isUserOwner = projectData?.ownerId === user.$id;
+  const isUserOwner = isOwner;
 
   const handleElementZIndex = (elementId) => {
     setElements((prevElements) => {
@@ -24,7 +24,7 @@ export default function Canvas({ projectData }) {
 
       if (targetElement && (targetElement.zIndex || 0) === maxZIndex) return prevElements;
 
-      return prevElements.map((el) => 
+      return prevElements.map((el) =>
         el.$id === elementId ? { ...el, zIndex: maxZIndex + 1 } : el
       );
     });
@@ -41,7 +41,68 @@ export default function Canvas({ projectData }) {
   };
 
   useEffect(() => {
+    if (!projectData) return;
+
     loadElements();
+
+    let subscription;
+    let isMounted = true;
+
+    const setupRealtime = async () => {
+      try {
+        const channelString = `databases.taski.tables.elements.rows`;
+
+        const sub = await realtime.subscribe(
+          channelString,
+          (response) => {
+            const payload = response.payload;
+            const events = response.events;
+
+            // Filter out events that belong to other projects
+            if (payload.projectId !== projectData.$id) return;
+
+            setElements((prevElements) => {
+              if (events.some(e => e.includes(".create"))) {
+                // Prevent duplicate UI glitches if this user made the card
+                if (prevElements.some((el) => el.$id === payload.$id)) return prevElements;
+                return [...prevElements, payload];
+              }
+
+              if (events.some(e => e.includes(".update"))) {
+                return prevElements.map((el) =>
+                  el.$id === payload.$id ? payload : el
+                );
+              }
+
+              if (events.some(e => e.includes(".delete"))) {
+                return prevElements.filter((el) => el.$id !== payload.$id);
+              }
+
+              return prevElements;
+            });
+          }
+        );
+
+        if (!isMounted) {
+          sub.close();
+        } else {
+          subscription = sub;
+          console.log("Realtime subscription opened");
+        }
+      } catch (error) {
+        console.error("Failed to subscribe to realtime updates:", error);
+      }
+    };
+
+    setupRealtime();
+
+    return () => {
+      isMounted = false;
+      if (subscription) {
+        subscription.close();
+        console.log("Realtime subscription closed");
+      }
+    };
   }, [projectData]);
 
   const handlePointerDown = (e) => {
@@ -87,10 +148,14 @@ export default function Canvas({ projectData }) {
       const res = await tablesDB.createRow({
         databaseId: "taski",
         tableId: "elements",
-        rowId: ID?.unique(), 
+        rowId: ID?.unique(),
         data: newElementData,
       });
-      setElements((prev) => [...prev, res]);
+      //Check if the realtime socket already added it before the HTTP request finished!
+      setElements((prev) => {
+        if (prev.some((el) => el.$id === res.$id)) return prev;
+        return [...prev, res];
+      });
     } catch (error) {
       console.error("Failed to create element:", error);
     }
@@ -122,6 +187,7 @@ export default function Canvas({ projectData }) {
         {elements.map((el, index) => {
           const commonProps = {
             camera,
+            isPanning: panning,
             zIndex: el.zIndex || index + 1,
             onDelete: removeElement,
             onCardClick: handleElementZIndex

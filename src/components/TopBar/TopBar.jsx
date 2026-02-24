@@ -15,9 +15,11 @@ import VerticalSep from "../VerticalSep";
 import "./TopBar.css";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import CollabPanel from "./CollabPanel";
 
 export default function TopBar({
   projectName,
+  projectData,
   showProjectMenu = true,
   showAccountIcon = true,
   onProjectMenuShowProjectSettings,
@@ -30,6 +32,8 @@ export default function TopBar({
 
   const projectRef = useRef(null);
   const accountRef = useRef(null);
+
+  const isOwner = projectData?.ownerId === user?.$id;
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -117,7 +121,10 @@ export default function TopBar({
         </button>
 
         {showAccountIcon && (
-          <AccountBubble onClick={() => setOpenAccountMenu(!openAccountMenu)} />
+          <>
+            {projectData?.collabIds?.length > 0 && <CollabPanel projectData={projectData}/>}
+            <AccountBubble onClick={() => setOpenAccountMenu(!openAccountMenu)} isOwner={isOwner} />
+          </>
         )}
 
         {openAccountMenu && (

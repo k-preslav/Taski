@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import "./ProjectButton.css";
 import AccountBubble from "../AccountBubble";
+import { CrownIcon, UsersIcon } from "lucide-react";
 
-export default function ProjectButton({ name, onClick, onSave }) {
+export default function ProjectButton({ name, isOwner, onClick, onSave }) {
   const [isEditing, setIsEditing] = useState(!name);
   const [value, setValue] = useState(name || "");
 
@@ -45,7 +46,17 @@ export default function ProjectButton({ name, onClick, onSave }) {
       ) : (
         <div className="project-button__content">
           <span className="project-button__name">{value || "New Project"}</span>
-          <AccountBubble size={28} />
+          {isOwner ? (
+            <div className="pill" style={{border: '1px solid var(--accent2)'}}>
+              <CrownIcon size={13} strokeWidth={2.7} color="var(--accent2)" />
+              <p style={{color: 'var(--accent2)'}}>Owner</p>
+            </div>
+          ) : (
+            <div className="pill" style={{border: '1px solid var(--accent)'}}>
+              <UsersIcon size={14} strokeWidth={2.7} color="var(--accent)" />
+              <p style={{color: 'var(--accent)'}}>Contributor</p>
+            </div>
+          )}
         </div>
       )}
     </div>

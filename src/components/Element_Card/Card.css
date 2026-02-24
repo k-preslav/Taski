@@ -5,11 +5,15 @@
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
   width: 260px;
   min-height: 80px;
+  max-height: 600px; 
+  display: flex;          
+  flex-direction: column; 
   user-select: none;
   border: 1px solid var(--border);
   transition: box-shadow 0.2s ease;
   animation: card-pop 0.15s ease;
 }
+
 @keyframes card-pop {
   from {
     opacity: 0;
@@ -77,6 +81,14 @@
   font-size: 14px;
   line-height: 1.5;
   cursor: default;
+  overflow-y: auto;
+}
+.content::-webkit-scrollbar {
+  width: 6px;
+}
+.content::-webkit-scrollbar-thumb {
+  background-color: var(--border);
+  border-radius: 8px;
 }
 
 .checkboxLine {
@@ -118,7 +130,10 @@
   resize: none;
   outline: none;
   line-height: 1.5;
-  margin-bottom: -6px;
+  overflow: hidden;
+  display: block;
+  box-sizing: border-box;
+  margin-bottom: 0;
 }
 
 .emptyLine {

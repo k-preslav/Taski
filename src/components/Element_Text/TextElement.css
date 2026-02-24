@@ -5,6 +5,7 @@
   padding: 4px 8px;
   border-radius: 8px;
   height: 45px;
+  width: max-content;
   border: 1px solid transparent;
   transition: border-color 0.2s;
   animation: card-pop 0.15s ease;
@@ -29,8 +30,27 @@
   opacity: 1;
 }
 
+.input-sizer {
+  display: inline-grid;
+  align-items: center;
+  transform: translateY(-5px);
+}
+
+.input-sizer::after {
+  content: attr(data-value) " ";
+  visibility: hidden;
+  white-space: pre;
+  grid-area: 1 / 1;
+  font-family: inherit;
+  font-size: 24px;
+  font-weight: 500;
+  padding: 0;
+}
+
 .text-element-input {
+  grid-area: 1 / 1;
   width: 100%;
+  min-width: 0;
   height: 45px;
   background: transparent;
   border: none;
@@ -40,11 +60,8 @@
   font-weight: 500;
   color: var(--text);
   padding: 0;
-  transform: translateY(-5px);
   white-space: nowrap;
   overflow: hidden;
-  text-overflow: ellipsis;
-  resize: none;
 }
 
 .text-element-display {

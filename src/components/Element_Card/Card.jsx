@@ -4,7 +4,7 @@ import { tablesDB } from "../../appwrite/config";
 import { MenuIcon, Trash2Icon } from "lucide-react";
 import Confirmation from "../Confirmation/Confirmation";
 
-function Card({ cardData: elementData, camera, onCardClick, zIndex, onDelete, isUserOwner }) {
+function Card({ cardData: elementData, camera, isPanning, onCardClick, zIndex, onDelete, isUserOwner }) {
   const cardRef = useRef(null);
 
   const [position, setPosition] = useState({
@@ -26,6 +26,15 @@ function Card({ cardData: elementData, camera, onCardClick, zIndex, onDelete, is
     setDraftContent(elementData.content || "");
     setDraftTitle(elementData.title || "");
   }, [elementData.content, elementData.title]);
+
+  useEffect(() => {
+    if (!dragging) {
+      setPosition({
+        x: elementData.x || 0,
+        y: elementData.y || 0,
+      });
+    }
+  }, [elementData.x, elementData.y]);
 
   const updateCardData = async (data = {}) => {
     if (!isUserOwner) return;
@@ -120,7 +129,7 @@ function Card({ cardData: elementData, camera, onCardClick, zIndex, onDelete, is
     if (draftContent === "") {
       return (
         <div style={{ color: "var(--text-muted)", opacity: 0.6, fontStyle: "italic" }}>
-          Double click to write...
+          Double click to type...
         </div>
       );
     }
@@ -131,7 +140,6 @@ function Card({ cardData: elementData, camera, onCardClick, zIndex, onDelete, is
       if (checkboxMatch) {
         const checked = checkboxMatch[2] === "x";
 
-        // 1. Abstract the toggle logic so we can reuse it for both the input and the text
         const toggleCheckbox = async () => {
           if (!isUserOwner) return;
 
@@ -187,7 +195,8 @@ function Card({ cardData: elementData, camera, onCardClick, zIndex, onDelete, is
       className="card"
       style={{
         transform: `translate(${position.x + camera.x}px, ${position.y + camera.y}px)`,
-        zIndex: zIndex
+        zIndex: zIndex,
+        transition: (dragging || isPanning) ? "none" : "transform 0.2s cubic-bezier(0.2, 0, 0, 1)"
       }}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
@@ -207,6 +216,8 @@ function Card({ cardData: elementData, camera, onCardClick, zIndex, onDelete, is
           <input
             autoFocus
             className="titleEditor"
+            spellCheck={false}
+            autoComplete="off"
             value={draftTitle}
             onPointerDown={(e) => e.stopPropagation()}
             onChange={(e) => setDraftTitle(e.target.value)}
@@ -244,16 +255,22 @@ function Card({ cardData: elementData, camera, onCardClick, zIndex, onDelete, is
           e.stopPropagation();
 
           setEditingContent(true);
-        }}
-        onPointerDown={(e) => {
-          e.stopPropagation();
-          onCardClick(elementData.$id);
+
+          setTimeout(() => {
+            const textarea = cardRef.current?.querySelector('.contentEditor');
+            if (textarea) {
+              textarea.style.height = "auto";
+              textarea.style.height = `${textarea.scrollHeight + 20}px`;
+            }
+          }, 0);
         }}
       >
         {editingContent ? (
           <textarea
             autoFocus
             className="contentEditor"
+            spellCheck={false}
+            autoComplete="off"
             value={draftContent}
             onFocus={autoResizeTextarea}
             onChange={(e) => {

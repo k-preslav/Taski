@@ -26,27 +26,27 @@ function CanvasTools() {
     <>
       <div className="tools-container">
         <button 
-          className="btn"
+          className="canvasToolButn"
           draggable
           onDragStart={(e) => handleDragStart(e, 'card')}
         >
-          <PanelTopIcon className='btn-icon' size={21} />
+          <PanelTopIcon className='canvasToolButn-icon' size={21} />
         </button>
         
         <button 
-          className="btn"
+          className="canvasToolButn"
           draggable
           onDragStart={(e) => handleDragStart(e, 'text')}
         >
-          <TypeIcon className='btn-icon' size={21} />
+          <TypeIcon className='canvasToolButn-icon' size={21} />
         </button>
 
         <button 
-          className="btn"
+          className="canvasToolButn"
           draggable
           onDragStart={(e) => handleDragStart(e, 'image')}
         >
-          <ImageIcon className='btn-icon' size={21} />
+          <ImageIcon className='canvasToolButn-icon' size={21} />
         </button>
       </div>
 

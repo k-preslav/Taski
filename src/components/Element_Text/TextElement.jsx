@@ -1,10 +1,10 @@
 import React, { useState, useRef, useEffect } from "react";
 import { tablesDB } from "../../appwrite/config";
 import { Trash2Icon } from "lucide-react";
-import Confirmation from "../Confirmation/Confirmation"; // Import your confirmation component!
+import Confirmation from "../Confirmation/Confirmation";
 import "./TextElement.css";
 
-function TextElement({ textData, camera, onCardClick, zIndex, onDelete, isUserOwner }) {
+function TextElement({ textData, camera, isPanning, onCardClick, zIndex, onDelete, isUserOwner }) {
   const [position, setPosition] = useState({
     x: textData.x || 0,
     y: textData.y || 0,
@@ -16,12 +16,20 @@ function TextElement({ textData, camera, onCardClick, zIndex, onDelete, isUserOw
   const [editing, setEditing] = useState(false);
   const [content, setContent] = useState(textData.content || "");
 
-  // Add state for the confirmation modal
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   useEffect(() => {
     setContent(textData.content || "");
   }, [textData.content]);
+
+  useEffect(() => {
+    if (!dragging) {
+      setPosition({
+        x: textData.x || 0,
+        y: textData.y || 0,
+      });
+    }
+  }, [textData.x, textData.y]);
 
   const updateTextData = async (data = {}) => {
     if (!isUserOwner) return;
@@ -103,18 +111,14 @@ function TextElement({ textData, camera, onCardClick, zIndex, onDelete, isUserOw
     await updateTextData();
   };
 
-  const autoResizeTextarea = (e) => {
-    e.target.style.height = "auto";
-    e.target.style.height = `${e.target.scrollHeight}px`;
-  };
-
   return (
     <div
-      className="text-element-wrapper"
+      className={`text-element-wrapper ${editing ? "is-editing" : ""}`}
       style={{
         transform: `translate(${position.x + camera.x}px, ${position.y + camera.y}px)`,
         zIndex: zIndex,
         cursor: dragging ? "grabbing" : editing ? "text" : "grab",
+        transition: (dragging || isPanning) ? "none" : "transform 0.2s cubic-bezier(0.2, 0, 0, 1)"
       }}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
@@ -141,20 +145,31 @@ function TextElement({ textData, camera, onCardClick, zIndex, onDelete, isUserOw
       )}
 
       {editing ? (
-        <input
-          autoFocus
-          className="text-element-input"
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-          onBlur={saveContent}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") saveContent();
-            if (e.key === "Escape") {
-              setEditing(false);
-              setContent(textData.content);
-            }
-          }}
-        />
+        <div
+          className="input-sizer"
+          data-value={content || "Double click to type..."}
+        >
+          <input
+            size={1}
+            id={`input-${textData.$id}`}
+            name="canvas-text-input"
+            autoComplete="off"
+            spellCheck="false"
+            autoFocus
+            className="text-element-input"
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            onBlur={saveContent}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") saveContent();
+              if (e.key === "Escape") {
+                setEditing(false);
+                setContent(textData.content);
+              }
+            }}
+            placeholder="Double click to type..."
+          />
+        </div>
       ) : (
         <div className="text-element-display">
           {content || <span className="text-placeholder">Double click to type...</span>}

@@ -2,13 +2,12 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import TopBar from "../components/TopBar/TopBar";
-import { ID, tablesDB, Query } from "../appwrite/config";
+import { ID, tablesDB, Query, realtime } from "../appwrite/config";
 import GithubIcon from "../components/GithubIcon";
 import { FrownIcon, LockIcon } from "lucide-react";
 import Button from "../components/Button/Button";
 import Spinner from "../components/Spinner/Spinner";
 import ProjectSettings from "../components/ProjectSettings/ProjectSettings";
-import Card from "../components/Element_Card/Card";
 import Canvas from "../components/Canvas/Canvas";
 
 function Project() {
@@ -28,10 +27,12 @@ function Project() {
       setIsLoading(true);
       setHasPermission(true);
       await checkUser();
+      
       if (!projectId) {
         if (isMounted) setIsLoading(false);
         return;
       }
+      
       try {
         const response = await tablesDB.getRow({
           databaseId: "taski",
@@ -39,19 +40,19 @@ function Project() {
           rowId: projectId,
         });
 
-        if (!response.isPublic && response.ownerId !== user.$id) {
-          if (isMounted) {
-            setHasPermission(false);
-            setIsLoading(false);
-          }
-          return;
-        }
-
-        if (response.ownerId === user.$id) {
-          setIsUserOwner(true);
-        }
+        const isOwnerOrCollab = 
+          response.ownerId === user.$id || 
+          (response.collabIds && response.collabIds.includes(user.$id));
 
         if (isMounted) {
+          setIsUserOwner(isOwnerOrCollab);
+
+          if (!response.isPublic && !isOwnerOrCollab) {
+            setHasPermission(false);
+            setIsLoading(false);
+            return;
+          }
+
           setProjectData(response);
         }
       } catch (err) {
@@ -61,34 +62,102 @@ function Project() {
         if (isMounted) setIsLoading(false);
       }
     };
+    
     loadData();
+    
     return () => {
       isMounted = false;
     };
   }, [projectId]);
 
-  const updateProject = async (name, isPublic) => {
+  useEffect(() => {
+    if (!projectData || !user) return;
+
+    let subscription;
+    let isMounted = true;
+
+    const setupRealtime = async () => {
+      try {
+        const channelString = `databases.taski.collections.projects.documents.${projectData.$id}`;
+
+        const sub = await realtime.subscribe(
+          channelString,
+          (response) => {
+            const payload = response.payload;
+            const events = response.events;
+
+            if (events.some(e => e.includes(".update"))) {
+              if (isMounted) {
+                setProjectData(payload);
+
+                const isOwnerOrCollab = 
+                  payload.ownerId === user.$id || 
+                  (payload.collabIds && payload.collabIds.includes(user.$id));
+
+                setIsUserOwner(isOwnerOrCollab);
+
+                if (!payload.isPublic && !isOwnerOrCollab) {
+                  setHasPermission(false);
+                } else {
+                  setHasPermission(true);
+                }
+              }
+            }
+
+            if (events.some(e => e.includes(".delete"))) {
+              if (isMounted) {
+                setProjectData(null);
+                setHasPermission(false);
+              }
+            }
+          }
+        );
+
+        if (!isMounted) {
+          if (typeof sub === "function") sub();
+          else if (sub.close) sub.close();
+        } else {
+          subscription = sub;
+          console.log("Project realtime subscription opened");
+        }
+      } catch (error) {
+        console.error("Failed to subscribe to project realtime updates:", error);
+      }
+    };
+
+    setupRealtime();
+
+    return () => {
+      isMounted = false;
+      if (subscription) {
+        if (typeof subscription === "function") subscription();
+        else if (subscription.close) subscription.close();
+        console.log("Project realtime subscription closed");
+      }
+    };
+  }, [projectData?.$id, user?.$id]);
+
+  const updateProject = async (name, isPublic, collabIds) => {
+    setProjectData((prev) => ({ ...prev, name, isPublic, collabIds }));
+    
     await tablesDB.updateRow({
       databaseId: "taski",
       tableId: "projects",
       rowId: projectData.$id,
-      data: { name, isPublic },
+      data: { name, isPublic, collabIds },
     });
-    setProjectData((prev) => ({ ...prev, name, isPublic }));
   };
 
   const deleteProject = async () => {
     setShowProjectSettings(false);
     setIsLoading(true);
 
-    // 1. Fetch all elements associated with this project
     const response = await tablesDB.listRows({
       databaseId: "taski",
       tableId: "elements",
       queries: [Query.equal("projectId", projectData.$id)],
     });
 
-    // 2. Delete each element
     const deletePromises = response.rows.map((card) =>
       tablesDB.deleteRow({
         databaseId: "taski",
@@ -99,7 +168,6 @@ function Project() {
 
     await Promise.all(deletePromises);
 
-    // 3. Delete the project itself
     await tablesDB.deleteRow({
       databaseId: "taski",
       tableId: "projects",
@@ -113,6 +181,7 @@ function Project() {
     <div style={styles.layout}>
       <TopBar
         projectName={projectData?.name}
+        projectData={projectData}
         showProjectMenu={!!projectData && isUserOwner}
         onProjectMenuShowProjectSettings={() => setShowProjectSettings(true)}
       />
@@ -143,13 +212,13 @@ function Project() {
           </div>
         ) : (
           <>
-            <Canvas projectData={projectData} />
+            <Canvas projectData={projectData} isOwner={isUserOwner} />
             {showProjectSettings && (
               <ProjectSettings
                 project={projectData}
                 onClose={() => setShowProjectSettings(false)}
-                onSave={(name, isPublic) => {
-                  updateProject(name, isPublic);
+                onSave={(name, isPublic, collabIds) => {
+                  updateProject(name, isPublic, collabIds);
                 }}
                 onDelete={deleteProject}
               />

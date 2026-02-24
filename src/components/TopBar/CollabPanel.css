@@ -1,0 +1,37 @@
+.collab-panel {
+  display: flex;
+  flex-direction: row;
+
+  background-color: var(--bg);
+  padding: 5px;
+  border-radius: 100px;
+  gap: 5px;
+
+  margin-right: 8px;
+
+  justify-content: center;
+  justify-items: center;
+  align-items: center;
+
+  border: 1px solid var(--border);
+  
+  height: 46px;
+}
+
+.collab-panel .more {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background-color: var(--panel);
+  color: var(--text-muted);
+  font-size: 14px;
+
+  border: 1px solid transparent;
+}
+
+.collab-panel .more p {
+  transform: translateX(-1px);
+}
