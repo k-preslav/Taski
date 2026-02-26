@@ -5,6 +5,7 @@ import client, { Query, realtime, tablesDB } from "../../appwrite/config";
 import { Channel, ID, Realtime } from "appwrite";
 import CanvasTools from "./CanvasTools";
 import { useAuth } from "../../context/AuthContext";
+import ImageCard from "../Element_ImageCard/ImageCard";
 
 export default function Canvas({ projectData, isOwner }) {
   const canvasRef = useRef(null);
@@ -56,7 +57,8 @@ export default function Canvas({ projectData, isOwner }) {
           channelString,
           (response) => {
             const payload = response.payload;
-            const events = response.events;
+            let events = response.events;
+            events = Array.isArray(events) ? events : Object.values(events || {});
 
             // Filter out events that belong to other projects
             if (payload.projectId !== projectData.$id) return;
@@ -199,8 +201,7 @@ export default function Canvas({ projectData, isOwner }) {
             case "text":
               return <TextElement isUserOwner={isUserOwner} key={el.$id} {...commonProps} textData={el} />;
             case "image":
-              // Replace with <ImageElement /> once created
-              return <Card isUserOwner={isUserOwner} key={el.$id} {...commonProps} cardData={el} isImage />;
+              return <ImageCard isUserOwner={isUserOwner} key={el.$id} {...commonProps} cardData={el} />;
             default:
               return null;
           }

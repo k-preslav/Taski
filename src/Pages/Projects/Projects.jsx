@@ -105,7 +105,8 @@ export default function Projects() {
           if (!isMounted) return;
 
           const payload = response.payload;
-          const events = response.events;
+          let events = response.events;
+          events = Array.isArray(events) ? events : Object.values(events || {});
 
           const isRelevant =
             payload.ownerId === user.$id ||

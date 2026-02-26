@@ -1,0 +1,267 @@
+.imageCard {
+  position: absolute;
+  background-color: var(--surface);
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  width: 260px;
+  min-height: 80px;
+  max-height: 800px;
+  display: flex;
+  flex-direction: column;
+  user-select: none;
+  border: 1px solid var(--border);
+  transition: box-shadow 0.2s ease;
+  animation: card-pop 0.15s ease;
+}
+
+.imageWrap {
+  width: 100%;
+  max-height: 160px;
+  overflow: hidden;
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface);
+  position: relative;
+}
+
+.imagePreview {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+  display: block;
+  transform: scale(1);
+  transform-origin: center center;
+  transition: transform 0.4s cubic-bezier(0.2, 0, 0, 1), opacity 0.3s ease;
+  will-change: transform, opacity;
+}
+
+.imageWrap:hover .imagePreview {
+  opacity: 0.85;
+}
+
+.imagePlaceholder {
+  width: 100%;
+  height: 160px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  font-size: 13px;
+  opacity: 0.7;
+  background: repeating-linear-gradient(45deg, rgba(0, 0, 0, 0.02) 0 6px, transparent 6px 12px);
+}
+
+@keyframes card-pop {
+  from {
+    opacity: 0;
+    scale: 0.98;
+  }
+
+  to {
+    opacity: 1;
+    scale: 1;
+  }
+}
+
+.imageCard .header {
+  padding: 8px 6px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.imageCard .headerText {
+  flex-grow: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 16px;
+  margin-left: 4px;
+  font-weight: 500;
+  color: var(--text);
+  transform: translateY(1px);
+}
+
+.titleEditor {
+  flex-grow: 1;
+  background: transparent;
+  border: 1px solid var(--accent-color);
+  border-radius: 4px;
+  padding: 2px 0;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text);
+  font-family: inherit;
+  outline: none;
+  width: 100%;
+}
+
+.headerRight {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.imageCard .deleteButton {
+  flex-shrink: 0;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 6px;
+  opacity: 0;
+  transition: all 0.15s ease-in-out;
+}
+
+.imageCard:hover .deleteButton {
+  opacity: 1;
+}
+
+.imageCard .deleteButton:hover {
+  background-color: var(--danger-bg);
+}
+
+.content {
+  padding: 7px 12px;
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.5;
+  cursor: default;
+  overflow-y: auto;
+}
+
+.content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.content::-webkit-scrollbar-thumb {
+  background-color: var(--border);
+  border-radius: 8px;
+}
+
+.contentEditor {
+  width: 100%;
+  background: transparent;
+  border: none;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 14px;
+  resize: none;
+  outline: none;
+  line-height: 1.5;
+  overflow: hidden;
+  display: block;
+  box-sizing: border-box;
+  margin-bottom: 0;
+}
+
+.emptyLine {
+  height: 0.8em;
+}
+
+.imageRemoveOverlay {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background-color: color-mix(in srgb, var(--surface) 50%, transparent);
+  backdrop-filter: blur(4px);
+  color: white;
+  padding: 6px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s ease, background-color 0.2s ease, transform 0.2s ease;
+}
+
+.imageWrap:hover .imageRemoveOverlay {
+  opacity: 1;
+}
+
+.imageRemoveOverlay:hover {
+  background-color: var(--panel);
+  transform: scale(1.05);
+}
+
+.imageModalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999999;
+  animation: modal-fade-in 0.2s ease-out forwards;
+  cursor: zoom-out;
+}
+
+.imageModalContent {
+  position: relative;
+  max-width: 90vw;
+  max-height: 90vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: modal-scale-up 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  cursor: default;
+}
+
+.imageModalImg {
+  max-width: 100%;
+  max-height: 90vh;
+  object-fit: contain;
+  border-radius: 8px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+}
+
+.imageModalClose {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+  z-index: 2;
+}
+
+.imageModalClose:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.1);
+}
+
+@keyframes modal-fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes modal-scale-up {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}

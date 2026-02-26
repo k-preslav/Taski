@@ -1,4 +1,4 @@
-import { Client, Account, TablesDB, Realtime } from "appwrite";
+import { Client, Account, TablesDB, Realtime, Storage } from "appwrite";
 
 const client = new Client();
 
@@ -12,6 +12,8 @@ export const realtime = new Realtime(client);
 
 export const account = new Account(client);
 export const tablesDB = new TablesDB(client);
+export const storage = new Storage(client);
+
 export { ID, Query } from "appwrite";
 
 

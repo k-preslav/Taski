@@ -27,12 +27,12 @@ function Project() {
       setIsLoading(true);
       setHasPermission(true);
       await checkUser();
-      
+
       if (!projectId) {
         if (isMounted) setIsLoading(false);
         return;
       }
-      
+
       try {
         const response = await tablesDB.getRow({
           databaseId: "taski",
@@ -40,8 +40,8 @@ function Project() {
           rowId: projectId,
         });
 
-        const isOwnerOrCollab = 
-          response.ownerId === user.$id || 
+        const isOwnerOrCollab =
+          response.ownerId === user.$id ||
           (response.collabIds && response.collabIds.includes(user.$id));
 
         if (isMounted) {
@@ -62,9 +62,9 @@ function Project() {
         if (isMounted) setIsLoading(false);
       }
     };
-    
+
     loadData();
-    
+
     return () => {
       isMounted = false;
     };
@@ -84,14 +84,15 @@ function Project() {
           channelString,
           (response) => {
             const payload = response.payload;
-            const events = response.events;
+            let events = response.events;
+            events = Array.isArray(events) ? events : Object.values(events || {});
 
             if (events.some(e => e.includes(".update"))) {
               if (isMounted) {
                 setProjectData(payload);
 
-                const isOwnerOrCollab = 
-                  payload.ownerId === user.$id || 
+                const isOwnerOrCollab =
+                  payload.ownerId === user.$id ||
                   (payload.collabIds && payload.collabIds.includes(user.$id));
 
                 setIsUserOwner(isOwnerOrCollab);
@@ -139,7 +140,7 @@ function Project() {
 
   const updateProject = async (name, isPublic, collabIds) => {
     setProjectData((prev) => ({ ...prev, name, isPublic, collabIds }));
-    
+
     await tablesDB.updateRow({
       databaseId: "taski",
       tableId: "projects",
