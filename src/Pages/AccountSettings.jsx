@@ -6,8 +6,11 @@ import AccountBubble from "../components/AccountBubble";
 import { useAuth } from "../context/AuthContext";
 import Button from "../components/Button/Button";
 import Spinner from "../components/Spinner/Spinner";
-import { LogOutIcon, PencilIcon, ChevronLeft, Check } from "lucide-react";
-import { account, tablesDB } from "../appwrite/config";
+import { LogOutIcon, PencilIcon, ChevronLeft, Check, ImageUpIcon } from "lucide-react";
+import { account, tablesDB, storage } from "../appwrite/config";
+import { ID } from "appwrite";
+
+const BUCKET_ID = import.meta.env.VITE_APPWRITE_IMAGES_BUCKET_ID;
 
 export default function AccountSettings() {
   const { user, logout, checkUser } = useAuth();
@@ -19,6 +22,10 @@ export default function AccountSettings() {
   const [isSaving, setIsSaving] = useState(false);
   const [dbUser, setDbUser] = useState(null);
   const inputRef = useRef(null);
+  const fileInputRef = useRef(null);
+
+  const [isBubbleHovered, setIsBubbleHovered] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
 
   useEffect(() => {
     const fetchDbAccount = async () => {
@@ -49,7 +56,7 @@ export default function AccountSettings() {
   const save = async () => {
     const val = nameInput.trim();
     if (!val || val === user?.name) return setIsEditing(false);
-    
+
     setIsSaving(true);
     try {
       await account.updateName(val);
@@ -72,6 +79,53 @@ export default function AccountSettings() {
   const handleKeyDown = (e) => {
     if (e.key === "Enter") save();
     if (e.key === "Escape") setIsEditing(false);
+  };
+
+  const onFileChange = async (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+
+    try {
+      setIsUploading(true);
+      setError("");
+
+      const oldAvatarId = dbUser?.avatarId;
+
+      const uploadedFile = await storage.createFile(
+        BUCKET_ID,
+        ID.unique(),
+        file
+      );
+
+      await tablesDB.updateRow({
+        databaseId: "taski",
+        tableId: "accounts",
+        rowId: user.$id,
+        data: { avatarId: uploadedFile.$id },
+      });
+
+      if (oldAvatarId) {
+        try {
+          await storage.deleteFile(BUCKET_ID, oldAvatarId);
+        } catch (deleteErr) {
+          console.error("Failed to delete old avatar file:", deleteErr);
+        }
+      }
+
+      const updatedData = await tablesDB.getRow({
+        databaseId: "taski",
+        tableId: "accounts",
+        rowId: user.$id,
+      });
+      
+      setDbUser(updatedData);
+    } catch (err) {
+      console.error(err);
+      setError("Failed to upload image. Please try again.");
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
   };
 
   if (loading) {
@@ -100,7 +154,41 @@ export default function AccountSettings() {
         <h1 style={styles.heading}>Account Settings</h1>
 
         <div style={styles.card}>
-          <AccountBubble size={64} accountId={user?.$id} />
+          <div 
+            style={{ 
+              position: "relative", 
+              width: "fit-content", 
+              height: "fit-content",
+              cursor: isUploading ? "default" : "pointer" 
+            }}
+            onMouseEnter={() => setIsBubbleHovered(true)}
+            onMouseLeave={() => setIsBubbleHovered(false)}
+            onClick={() => {
+              if (!isUploading) fileInputRef.current?.click();
+            }}
+          >
+            <AccountBubble size={64} accountId={user?.$id} />
+            
+            {((isBubbleHovered || isUploading) && !dbUser.isAnon) && (
+              <div style={styles.accountBubbleOverlay}>
+                <div style={styles.accountBubbleOverlayIcon}>
+                  {isUploading ? (
+                    <Spinner size={24} color="var(--text)" />
+                  ) : (
+                    <ImageUpIcon size={24} color="var(--text)" />
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            style={{ display: "none" }}
+            onChange={onFileChange}
+          />
 
           <div style={styles.infoSection}>
             <div style={styles.fieldGroup}>
@@ -126,9 +214,10 @@ export default function AccountSettings() {
                       onChange={(e) => setNameInput(e.target.value)}
                       onKeyDown={handleKeyDown}
                       disabled={isSaving}
+                      spellCheck={false}
                     />
                     {isSaving ? (
-                      <Spinner size={14} color="var(--accent)" />
+                      <Spinner size={14} color="var(--text)" />
                     ) : (
                       <Check size={16} style={styles.saveIcon} onClick={save} />
                     )}
@@ -248,10 +337,11 @@ const styles = {
     outline: "none",
     padding: 0,
     width: "100%",
-    borderBottom: "1px solid var(--accent)",
+    fontFamily: "inherit",
+    height: "27px",
   },
   editIcon: { color: "var(--text-muted)", cursor: "pointer" },
-  saveIcon: { color: "var(--accent)", cursor: "pointer" },
+  saveIcon: { color: "var(--text)", cursor: "pointer" },
   emailText: { fontSize: "16px", color: "var(--text-muted)" },
   divider: { height: "1px", backgroundColor: "var(--border)", width: "100%" },
   logoutBtn: {
@@ -265,5 +355,25 @@ const styles = {
     gap: "10px",
     borderRadius: "8px",
   },
-  error: { color: "var(--danger)", fontSize: "13px", marginTop: "8px" }
+  error: { color: "var(--danger)", fontSize: "13px", marginTop: "8px" },
+  accountBubbleOverlay: {
+    position: "absolute",
+    top: 0,
+    left: '4px',
+    zIndex: 1,
+    backgroundColor: "var(--bg)",
+    borderRadius: "100px",
+    width: "89%",
+    height: "100%",
+    opacity: 0.8,
+  },
+  accountBubbleOverlayIcon: {
+    position: "absolute",
+    top: "50%",
+    left: "50%",
+    transform: "translate(-50%, -50%)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+  }
 };

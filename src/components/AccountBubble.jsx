@@ -1,32 +1,91 @@
 import React, { useState, useEffect } from "react";
 import { CrownIcon } from "lucide-react";
-import { tablesDB } from "../appwrite/config"; 
+import { tablesDB, storage, realtime } from "../appwrite/config";
 import { useAuth } from "../context/AuthContext";
+import Spinner from "./Spinner/Spinner";
+
+const BUCKET_ID = import.meta.env.VITE_APPWRITE_IMAGES_BUCKET_ID;
 
 export default function AccountBubble({ size = 36, onClick, isOwner, accountId }) {
   const [accountIdData, setAccountIdData] = useState(null);
-  const {user} = useAuth();
+  const { user } = useAuth();
+
+  const [isLoading, setIsLoading] = useState(true);
+
+  const targetAccountId = accountId || user?.$id;
 
   useEffect(() => {
-    if (!accountId) accountId = user?.$id;
+    if (!targetAccountId) return;
 
     const fetchAccountData = async () => {
+      setIsLoading(true);
+
       try {
         const response = await tablesDB.getRow({
           databaseId: "taski",
           tableId: "accounts",
-          rowId: accountId
+          rowId: targetAccountId
         });
         setAccountIdData(response);
+
+        setTimeout(() => {
+          setIsLoading(false);
+        }, 200);
       } catch (error) {
-        console.error("Failed to load account data for ID:", accountId, error);
+        console.error("Failed to load account data for ID:", targetAccountId, error);
+        setIsLoading(false);
       }
     };
 
     fetchAccountData();
-  }, [accountId]);
+  }, [targetAccountId]);
+
+  useEffect(() => {
+    if (!targetAccountId) return;
+
+    let isMounted = true;
+    let subscription;
+
+    const setupRealtime = async () => {
+      try {
+        const channelString = `databases.taski.collections.accounts.documents`;
+
+        subscription = await realtime.subscribe(channelString, (response) => {
+          if (!isMounted) return;
+
+          const payload = response.payload;
+          let events = response.events;
+          events = Array.isArray(events) ? events : Object.values(events || {});
+
+          if (payload.$id === targetAccountId) {
+            if (events.some((e) => e.includes(".update"))) {
+              setAccountIdData(payload);
+            }
+          }
+        });
+      } catch (error) {
+        console.error("Failed to subscribe to account updates:", error);
+      }
+    };
+
+    setupRealtime();
+
+    return () => {
+      isMounted = false;
+      if (subscription) {
+        if (typeof subscription === "function") subscription();
+        else if (subscription.close) subscription.close();
+      }
+    };
+  }, [targetAccountId]);
 
   const initial = accountIdData?.name ? accountIdData.name.charAt(0).toUpperCase() : "";
+  const avatarId = accountIdData?.avatarId;
+
+  const avatarUrl = avatarId
+    ? storage.getFileView({ bucketId: BUCKET_ID, fileId: avatarId })
+    : null;
+
   const diameter = typeof size === "number" ? size : 36;
   const fontSize = Math.round(diameter * 0.45);
 
@@ -46,7 +105,7 @@ export default function AccountBubble({ size = 36, onClick, isOwner, accountId }
   const iconStyle = {
     transform: "translateY(1px)",
     marginRight: "2px",
-  }
+  };
 
   const bubbleStyle = {
     width: diameter,
@@ -60,8 +119,9 @@ export default function AccountBubble({ size = 36, onClick, isOwner, accountId }
     boxShadow: "0 2px 10px rgba(0,0,0,0.15)",
     cursor: onClick ? "pointer" : "default",
     userSelect: "none",
-    background: "linear-gradient(180deg, #FB6603 0%, #2854E5 100%)",
+    background: avatarUrl ? "transparent" : "linear-gradient(180deg, #FB6603 0%, #2854E5 100%)",
     margin: isOwner ? "0" : "0px 4px",
+    overflow: "hidden",
   };
 
   const textStyle = {
@@ -74,24 +134,41 @@ export default function AccountBubble({ size = 36, onClick, isOwner, accountId }
     transform: "translateY(0.5px) translateX(-1.5px)",
   };
 
+  const imageStyle = {
+    width: "100%",
+    height: "100%",
+    objectFit: 'fill',
+  };
+
+  const renderBubbleContent = () => {
+    if (avatarUrl) {
+      return <img src={avatarUrl} alt={`${initial} avatar`} style={imageStyle} />;
+    }
+    return <span style={textStyle}>{initial}</span>;
+  };
+
+  if (isLoading) {
+    return <div style={{ width: diameter, height: diameter, margin: "4px", justifyContent: "center", alignItems: "center", display: "flex" }}><Spinner size={diameter * 0.5} /></div>;
+  }
+
   if (!isOwner) {
     return (
       <div style={bubbleStyle} onClick={onClick} aria-label="Account">
-        <span style={textStyle}>{initial}</span>
+        {renderBubbleContent()}
       </div>
     );
   }
 
   return (
     <div style={pillStyle} onClick={onClick} aria-label="Owner Account">
-      <CrownIcon 
-        size={fontSize * 1.15} 
-        color="var(--accent2)" 
+      <CrownIcon
+        size={fontSize * 1.15}
+        color="var(--accent2)"
         strokeWidth={2}
         style={iconStyle}
       />
       <div style={bubbleStyle}>
-        <span style={textStyle}>{initial}</span>
+        {renderBubbleContent()}
       </div>
     </div>
   );

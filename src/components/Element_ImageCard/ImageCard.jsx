@@ -6,7 +6,7 @@ import { ID } from "appwrite";
 import { ImageMinusIcon, Trash2Icon, XIcon } from "lucide-react";
 import Confirmation from "../Confirmation/Confirmation";
 
-const BUCKET_ID = import.meta.env.VITE_APPWRITE_IMAGE_CARDS_BUCKET_ID;
+const BUCKET_ID = import.meta.env.VITE_APPWRITE_IMAGES_BUCKET_ID;
 
 function ImageCard({ cardData: elementData, camera, isPanning, onCardClick, zIndex, onDelete, isUserOwner }) {
   const cardRef = useRef(null);

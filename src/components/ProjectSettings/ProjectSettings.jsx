@@ -4,6 +4,7 @@ import Confirmation from "../Confirmation/Confirmation";
 import AccountBubble from "../AccountBubble";
 import { tablesDB, Query } from "../../appwrite/config";
 import "./ProjectSettings.css";
+import { useAuth } from "../../context/AuthContext";
 
 export default function ProjectSettings({
   project,
@@ -21,7 +22,19 @@ export default function ProjectSettings({
   const [showConfirm, setShowConfirm] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
 
+  const { user } = useAuth();
+  const [isUserGuest, setIsUserGuest] = useState(false);
   const searchContainerRef = useRef(null);
+
+  useEffect(() => {
+    tablesDB.getRow({
+      databaseId: "taski",
+      tableId: "accounts",
+      rowId: user.$id,
+    }).then((res) => {
+      setIsUserGuest(res.isAnon);
+    });
+  }, [user.$id]);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -58,7 +71,7 @@ export default function ProjectSettings({
         return;
       }
 
-      setIsSearching(true);
+      if (!isUserGuest) setIsSearching(true);
       try {
         const response = await tablesDB.listRows({
           databaseId: "taski",
@@ -82,7 +95,7 @@ export default function ProjectSettings({
     }, 300);
 
     return () => clearTimeout(searchTimer);
-  }, [searchTerm, collabIds, project?.ownerId]);
+  }, [searchTerm, collabIds, project?.ownerId, isUserGuest]);
 
   const handleAddCollab = (user) => {
     setCollabIds((prev) => [...prev, user.$id]);
@@ -161,35 +174,37 @@ export default function ProjectSettings({
           <div className="settings-group">
             <label className="settings-label">COLLABORATORS</label>
 
-            <div className="search-container" ref={searchContainerRef}>
-              <div className="settings-search-wrapper">
-                <Search size={14} color="var(--text-muted)" className="search-icon" />
-                <input
-                  className="settings-input settings-search-input"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Search users by name..."
-                />
-              </div>
-
-              {searchResults.length > 0 && (
-                <div className="search-results-dropdown">
-                  {searchResults.map((u) => (
-                    <div
-                      key={u.$id}
-                      className="search-result-item"
-                      onClick={() => handleAddCollab(u)}
-                    >
-                      <div className="search-result-info">
-                        <AccountBubble accountId={u.$id} size={28} />
-                        <span className="result-name">{u.name}</span>
-                      </div>
-                      <Plus size={16} className="add-icon" />
-                    </div>
-                  ))}
+            {!isUserGuest && (
+              <div className="search-container" ref={searchContainerRef}>
+                <div className="settings-search-wrapper">
+                  <Search size={14} color="var(--text-muted)" className="search-icon" />
+                  <input
+                    className="settings-input settings-search-input"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    placeholder="Search users by name..."
+                  />
                 </div>
-              )}
-            </div>
+
+                {searchResults.length > 0 && (
+                  <div className="search-results-dropdown">
+                    {searchResults.map((u) => (
+                      <div
+                        key={u.$id}
+                        className="search-result-item"
+                        onClick={() => handleAddCollab(u)}
+                      >
+                        <div className="search-result-info">
+                          <AccountBubble accountId={u.$id} size={28} />
+                          <span className="result-name">{u.name}</span>
+                        </div>
+                        <Plus size={16} className="add-icon" />
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
 
             <div className="collab-list">
               {collabUsers.length > 0 ? (
@@ -209,7 +224,11 @@ export default function ProjectSettings({
                 ))
               ) : (
                 <div className="collab-empty">
-                  <span>No collaborators added</span>
+                  {isUserGuest ? (
+                    <span>Guest users cannot have collaborators</span>
+                  ) : (
+                    <span>No collaborators added</span>
+                  )}
                 </div>
               )}
             </div>
