@@ -19,7 +19,7 @@ const styles = {
     position: "absolute",
     bottom: "15px",
     right: "15px",
-    zIndex: 100,
+    zIndex: 9999,
     cursor: "pointer",
     display: "flex",
     opacity: 0.25,

@@ -8,6 +8,7 @@
   --text: #e3e3e3;
   --text-muted: #999999;
   --text-subtle: #aaaaaa;
+  --text-button: #cacaca;
   --border: #333333;
   --button-bg: #2a2a2a;
   --button-border: #3d3d3d;
@@ -32,6 +33,7 @@
   --text: #0b1220;
   --text-muted: #6b7280;
   --text-subtle: #9aa0a6;
+  --text-button: #4a4d50;
   --border: #e6e6e6;
   --button-bg: #f3f4f6;
   --button-border: #e6e7ea;
@@ -49,5 +51,5 @@
 /* Smooth, subtle transitions when switching theme */
 :root,
 :root * {
-  transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease;
+  transition: color 160ms ease, border-color 160ms ease;
 }

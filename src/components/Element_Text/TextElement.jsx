@@ -4,7 +4,8 @@ import { Trash2Icon } from "lucide-react";
 import Confirmation from "../Confirmation/Confirmation";
 import "./TextElement.css";
 
-function TextElement({ textData, camera, isPanning, onCardClick, zIndex, onDelete, isUserOwner }) {
+// --- UPDATED: Added `scale = 1` ---
+function TextElement({ textData, camera, scale = 1, isPanning, onCardClick, zIndex, onDelete, isUserOwner }) {
   const [position, setPosition] = useState({
     x: textData.x || 0,
     y: textData.y || 0,
@@ -87,18 +88,28 @@ function TextElement({ textData, camera, isPanning, onCardClick, zIndex, onDelet
     onCardClick(textData.$id);
 
     setDragging(true);
+
+    // --- UPDATED: Calculate offset based on world coordinates ---
+    const mouseWorldX = (e.clientX - camera.x) / scale;
+    const mouseWorldY = (e.clientY - camera.y) / scale;
+
     offset.current = {
-      x: e.clientX - position.x - camera.x,
-      y: e.clientY - position.y - camera.y,
+      x: mouseWorldX - position.x,
+      y: mouseWorldY - position.y,
     };
     e.currentTarget.setPointerCapture(e.pointerId);
   };
 
   const handlePointerMove = (e) => {
     if (!dragging || !isUserOwner) return;
+
+    // --- UPDATED: Calculate position based on world coordinates ---
+    const mouseWorldX = (e.clientX - camera.x) / scale;
+    const mouseWorldY = (e.clientY - camera.y) / scale;
+
     setPosition({
-      x: e.clientX - offset.current.x - camera.x,
-      y: e.clientY - offset.current.y - camera.y,
+      x: mouseWorldX - offset.current.x,
+      y: mouseWorldY - offset.current.y,
     });
   };
 
@@ -115,10 +126,15 @@ function TextElement({ textData, camera, isPanning, onCardClick, zIndex, onDelet
     <div
       className={`text-element-wrapper ${editing ? "is-editing" : ""}`}
       style={{
-        transform: `translate(${position.x + camera.x}px, ${position.y + camera.y}px)`,
+        // --- UPDATED: Apply scale to translation and CSS transform ---
+        position: "absolute",
+        left: 0,
+        top: 0,
+        transform: `translate(${position.x}px, ${position.y}px)`,
+        transformOrigin: "top left",
         zIndex: zIndex,
         cursor: dragging ? "grabbing" : editing ? "text" : "grab",
-        transition: (dragging || isPanning) ? "none" : "transform 0.2s cubic-bezier(0.2, 0, 0, 1)"
+        transition: dragging ? "none" : "transform 0.15s cubic-bezier(0.2, 0, 0, 1)"
       }}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}

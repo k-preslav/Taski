@@ -16,6 +16,7 @@ import "./TopBar.css";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import CollabPanel from "./CollabPanel";
+import { tablesDB } from "../../appwrite/config";
 
 export default function TopBar({
   projectName,
@@ -34,6 +35,25 @@ export default function TopBar({
   const accountRef = useRef(null);
 
   const isOwner = projectData?.ownerId === user?.$id;
+
+  useEffect(() => {
+    updateUserThemePref();
+  }, [theme]);
+
+  const updateUserThemePref = async () => {
+    if (!user) return;
+
+    try {
+      await tablesDB.updateRow({
+        databaseId: "taski",
+        tableId: "accounts",
+        rowId: user.$id,
+        data: { theme },
+      });
+    } catch (err) {
+      console.error("Failed to update theme preference:", err);
+    }
+  }
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -129,7 +149,7 @@ export default function TopBar({
 
         {openAccountMenu && (
           <div className="dropdown-menu dropdown-menu--right">
-            <div className="menu-label">{user?.name || "User Account"}</div>
+            <div className="menu-label">{user?.name || "Guest"}</div>
             <div className="menu-divider" />
             <button
               className="menu-item"

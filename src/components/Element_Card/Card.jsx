@@ -4,7 +4,7 @@ import { tablesDB } from "../../appwrite/config";
 import { MenuIcon, Trash2Icon } from "lucide-react";
 import Confirmation from "../Confirmation/Confirmation";
 
-function Card({ cardData: elementData, camera, isPanning, onCardClick, zIndex, onDelete, isUserOwner }) {
+function Card({ cardData: elementData, camera, scale = 1, isPanning, onCardClick, zIndex, onDelete, isUserOwner }) {
   const cardRef = useRef(null);
 
   const [position, setPosition] = useState({
@@ -94,29 +94,35 @@ function Card({ cardData: elementData, camera, isPanning, onCardClick, zIndex, o
     if (e.button !== 0 || editingContent || editingTitle || !isUserOwner) return;
 
     onCardClick(elementData.$id);
-
     setDragging(true);
+
+    const mouseWorldX = (e.clientX - camera.x) / scale;
+    const mouseWorldY = (e.clientY - camera.y) / scale;
+
     offset.current = {
-      x: e.clientX - position.x - camera.x,
-      y: e.clientY - position.y - camera.y,
+      x: mouseWorldX - position.x,
+      y: mouseWorldY - position.y,
     };
+    
     e.currentTarget.setPointerCapture(e.pointerId);
   };
 
   const handlePointerMove = (e) => {
-    if (!isUserOwner) return;
+    if (!isUserOwner || !dragging) return;
 
-    if (!dragging) return;
+    // --- UPDATED: Calculate movement based on world coordinates ---
+    const mouseWorldX = (e.clientX - camera.x) / scale;
+    const mouseWorldY = (e.clientY - camera.y) / scale;
+
     setPosition({
-      x: e.clientX - offset.current.x - camera.x,
-      y: e.clientY - offset.current.y - camera.y,
+      x: mouseWorldX - offset.current.x,
+      y: mouseWorldY - offset.current.y,
     });
   };
 
   const handlePointerUp = async (e) => {
-    if (!isUserOwner) return;
-
-    if (!dragging) return;
+    if (!isUserOwner || !dragging) return;
+    
     setDragging(false);
     if (e.target.hasPointerCapture(e.pointerId)) {
       e.target.releasePointerCapture(e.pointerId);
@@ -194,9 +200,13 @@ function Card({ cardData: elementData, camera, isPanning, onCardClick, zIndex, o
       ref={cardRef}
       className="card"
       style={{
-        transform: `translate(${position.x + camera.x}px, ${position.y + camera.y}px)`,
+        position: "absolute",
+        left: 0,
+        top: 0,
+        transform: `translate(${position.x}px, ${position.y}px)`,
+        transformOrigin: "top left",
         zIndex: zIndex,
-        transition: (dragging || isPanning) ? "none" : "transform 0.2s cubic-bezier(0.2, 0, 0, 1)"
+        transition: dragging ? "none" : "transform 0.15s cubic-bezier(0.2, 0, 0, 1)"
       }}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}

@@ -73,6 +73,7 @@ export default function AccountSettings() {
       setError(err.message);
     } finally {
       setIsSaving(false);
+      window.location.reload();
     }
   };
 
@@ -106,7 +107,7 @@ export default function AccountSettings() {
 
       if (oldAvatarId) {
         try {
-          await storage.deleteFile(BUCKET_ID, oldAvatarId);
+          await storage.deleteFile({ bucketId: BUCKET_ID, fileId: oldAvatarId });
         } catch (deleteErr) {
           console.error("Failed to delete old avatar file:", deleteErr);
         }
@@ -117,13 +118,14 @@ export default function AccountSettings() {
         tableId: "accounts",
         rowId: user.$id,
       });
-      
+
       setDbUser(updatedData);
     } catch (err) {
       console.error(err);
       setError("Failed to upload image. Please try again.");
     } finally {
       setIsUploading(false);
+      window.location.reload();
       if (fileInputRef.current) fileInputRef.current.value = "";
     }
   };
@@ -154,12 +156,12 @@ export default function AccountSettings() {
         <h1 style={styles.heading}>Account Settings</h1>
 
         <div style={styles.card}>
-          <div 
-            style={{ 
-              position: "relative", 
-              width: "fit-content", 
+          <div
+            style={{
+              position: "relative",
+              width: "fit-content",
               height: "fit-content",
-              cursor: isUploading ? "default" : "pointer" 
+              cursor: isUploading ? "default" : "pointer"
             }}
             onMouseEnter={() => setIsBubbleHovered(true)}
             onMouseLeave={() => setIsBubbleHovered(false)}
@@ -168,7 +170,7 @@ export default function AccountSettings() {
             }}
           >
             <AccountBubble size={64} accountId={user?.$id} />
-            
+
             {((isBubbleHovered || isUploading) && !dbUser.isAnon) && (
               <div style={styles.accountBubbleOverlay}>
                 <div style={styles.accountBubbleOverlayIcon}>
@@ -227,11 +229,17 @@ export default function AccountSettings() {
             </div>
 
             <div style={styles.divider} />
-
             <div style={styles.fieldGroup}>
-              <label style={styles.label}>Email Address</label>
+              {!isAnon && <label style={styles.label}>Email Address</label>}
+
               <div style={styles.emailText}>
-                {user?.email || (isAnon ? "Anonymous Session" : "No Email")}
+                {isAnon ? (
+                  <span style={{ color: "var(--text-muted)", fontWeight: "500", fontSize: "15px" }}>
+                    Anonymous Session
+                  </span>
+                ) : (
+                  user?.email || "No Email"
+                )}
               </div>
             </div>
 

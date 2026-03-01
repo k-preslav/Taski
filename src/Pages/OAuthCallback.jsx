@@ -27,7 +27,7 @@ function OAuthCallback() {
         await checkUser();
 
         // Redirect to home
-        navigate("/projects", { replace: true });
+        navigate("/projects");
       } catch {}
     };
 
@@ -35,13 +35,7 @@ function OAuthCallback() {
   }, [navigate, checkUser]);
 
   if (error) {
-    return (
-      <div>
-        <h1>Authentication Error</h1>
-        <p>{error}</p>
-        <p>Redirecting to login...</p>
-      </div>
-    );
+    return;
   }
 
   return;

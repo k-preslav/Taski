@@ -8,7 +8,7 @@ import Confirmation from "../Confirmation/Confirmation";
 
 const BUCKET_ID = import.meta.env.VITE_APPWRITE_IMAGES_BUCKET_ID;
 
-function ImageCard({ cardData: elementData, camera, isPanning, onCardClick, zIndex, onDelete, isUserOwner }) {
+function ImageCard({ cardData: elementData, camera, scale = 1, isPanning, onCardClick, zIndex, onDelete, isUserOwner }) {
   const cardRef = useRef(null);
   const fileInputRef = useRef(null);
 
@@ -23,7 +23,6 @@ function ImageCard({ cardData: elementData, camera, isPanning, onCardClick, zInd
   const [isUploading, setIsUploading] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   
-  // NEW: State to control the full-screen image preview modal
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
   useEffect(() => {
@@ -89,16 +88,30 @@ function ImageCard({ cardData: elementData, camera, isPanning, onCardClick, zInd
     if (e.button !== 0 || editingTitle || !isUserOwner) return;
 
     onCardClick(elementData.$id);
-
     setDragging(true);
-    offset.current = { x: e.clientX - position.x - camera.x, y: e.clientY - position.y - camera.y };
+
+    const mouseWorldX = (e.clientX - camera.x) / scale;
+    const mouseWorldY = (e.clientY - camera.y) / scale;
+
+    offset.current = { 
+      x: mouseWorldX - position.x, 
+      y: mouseWorldY - position.y 
+    };
     e.currentTarget.setPointerCapture(e.pointerId);
   };
 
   const handlePointerMove = (e) => {
     if (!isUserOwner) return;
     if (!dragging) return;
-    setPosition({ x: e.clientX - offset.current.x - camera.x, y: e.clientY - offset.current.y - camera.y });
+
+    // --- UPDATED: Calculate position based on world coordinates ---
+    const mouseWorldX = (e.clientX - camera.x) / scale;
+    const mouseWorldY = (e.clientY - camera.y) / scale;
+
+    setPosition({ 
+      x: mouseWorldX - offset.current.x, 
+      y: mouseWorldY - offset.current.y 
+    });
   };
 
   const handlePointerUp = async (e) => {
@@ -165,9 +178,13 @@ function ImageCard({ cardData: elementData, camera, isPanning, onCardClick, zInd
         ref={cardRef}
         className="imageCard"
         style={{
-          transform: `translate(${position.x + camera.x}px, ${position.y + camera.y}px)`,
+          position: "absolute",
+          left: 0,
+          top: 0,
+          transform: `translate(${position.x}px, ${position.y}px)`,
+          transformOrigin: "top left",
           zIndex: zIndex,
-          transition: (dragging || isPanning) ? "none" : "transform 0.2s cubic-bezier(0.2, 0, 0, 1)",
+          transition: dragging ? "none" : "transform 0.15s cubic-bezier(0.2, 0, 0, 1)",
         }}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
@@ -227,7 +244,6 @@ function ImageCard({ cardData: elementData, camera, isPanning, onCardClick, zInd
             e.stopPropagation();
             
             if (imageUrl) {
-              // Open modal instead of a new tab
               setIsPreviewOpen(true);
             } else {
               fileInputRef.current?.click();
