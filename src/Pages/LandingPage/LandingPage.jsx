@@ -100,6 +100,7 @@ export default function LandingPage() {
         >
           Get Started
         </button>
+        <a style={{ color: "#c3c3c3", textDecoration: "none" }} href="https://taski.dev/project/69a096b3003b07e6a9c3" target="_blank" rel="noreferrer">View example</a>
       </div>
 
       <div className="footer-text">

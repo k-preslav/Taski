@@ -9,6 +9,7 @@ import Spinner from "../components/Spinner/Spinner";
 import { LogOutIcon, PencilIcon, ChevronLeft, Check, ImageUpIcon } from "lucide-react";
 import { account, tablesDB, storage } from "../appwrite/config";
 import { ID } from "appwrite";
+import ContactIcon from "@/components/ContactIcon";
 
 const BUCKET_ID = import.meta.env.VITE_APPWRITE_IMAGES_BUCKET_ID;
 
@@ -253,6 +254,7 @@ export default function AccountSettings() {
         </Button>
       </div>
       <GithubIcon />
+      <ContactIcon />
     </div>
   );
 }

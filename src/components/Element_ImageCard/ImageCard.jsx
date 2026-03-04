@@ -8,7 +8,7 @@ import Confirmation from "../Confirmation/Confirmation";
 
 const BUCKET_ID = import.meta.env.VITE_APPWRITE_IMAGES_BUCKET_ID;
 
-function ImageCard({ cardData: elementData, camera, scale = 1, isPanning, onCardClick, zIndex, onDelete, isUserOwner }) {
+function ImageCard({ cardData: elementData, camera, scale = 1, isPanning, onCardClick, zIndex, onDelete, isUserOwner, isSelected, onToggleSelect, selectedElements }) {
   const cardRef = useRef(null);
   const fileInputRef = useRef(null);
 
@@ -87,6 +87,18 @@ function ImageCard({ cardData: elementData, camera, scale = 1, isPanning, onCard
   const handlePointerDown = (e) => {
     if (e.button !== 0 || editingTitle || !isUserOwner) return;
 
+    const isMultiSelect = e.ctrlKey || e.metaKey;
+    
+    if (isMultiSelect) {
+      onToggleSelect(elementData.$id, true);
+      e.stopPropagation();
+      return;
+    }
+
+    if (!isSelected) {
+      onToggleSelect(elementData.$id, false);
+    }
+
     onCardClick(elementData.$id);
     setDragging(true);
 
@@ -108,10 +120,31 @@ function ImageCard({ cardData: elementData, camera, scale = 1, isPanning, onCard
     const mouseWorldX = (e.clientX - camera.x) / scale;
     const mouseWorldY = (e.clientY - camera.y) / scale;
 
-    setPosition({ 
-      x: mouseWorldX - offset.current.x, 
-      y: mouseWorldY - offset.current.y 
-    });
+    const newX = mouseWorldX - offset.current.x;
+    const newY = mouseWorldY - offset.current.y;
+    
+    const deltaX = newX - position.x;
+    const deltaY = newY - position.y;
+
+    setPosition({ x: newX, y: newY });
+
+    // If multiple elements are selected, update them all
+    if (selectedElements.length > 1 && selectedElements.includes(elementData.$id)) {
+      selectedElements.forEach((id) => {
+        if (id !== elementData.$id) {
+          const otherElement = document.querySelector(`[data-element-id="${id}"]`);
+          if (otherElement) {
+            const currentTransform = otherElement.style.transform;
+            const match = currentTransform.match(/translate\(([-\d.]+)px, ([-\d.]+)px\)/);
+            if (match) {
+              const currentX = parseFloat(match[1]);
+              const currentY = parseFloat(match[2]);
+              otherElement.style.transform = `translate(${currentX + deltaX}px, ${currentY + deltaY}px)`;
+            }
+          }
+        }
+      });
+    }
   };
 
   const handlePointerUp = async (e) => {
@@ -119,7 +152,36 @@ function ImageCard({ cardData: elementData, camera, scale = 1, isPanning, onCard
     if (!dragging) return;
     setDragging(false);
     if (e.target.hasPointerCapture(e.pointerId)) e.target.releasePointerCapture(e.pointerId);
-    await updateCardData();
+
+    // Update all selected elements if multiple are selected
+    if (selectedElements.length > 1 && selectedElements.includes(elementData.$id)) {
+      await Promise.all(
+        selectedElements.map(async (id) => {
+          const otherElement = document.querySelector(`[data-element-id="${id}"]`);
+          if (otherElement) {
+            const currentTransform = otherElement.style.transform;
+            const match = currentTransform.match(/translate\(([-\d.]+)px, ([-\d.]+)px\)/);
+            if (match) {
+              const finalX = parseFloat(match[1]);
+              const finalY = parseFloat(match[2]);
+              
+              try {
+                await tablesDB.updateRow({
+                  databaseId: "taski",
+                  tableId: "elements",
+                  rowId: id,
+                  data: { x: finalX, y: finalY },
+                });
+              } catch (error) {
+                console.error("Failed to update element:", error);
+              }
+            }
+          }
+        })
+      );
+    } else {
+      await updateCardData();
+    }
   };
 
   const onFileChange = async (e) => {
@@ -176,7 +238,8 @@ function ImageCard({ cardData: elementData, camera, scale = 1, isPanning, onCard
     <>
       <div
         ref={cardRef}
-        className="imageCard"
+        className={`imageCard ${isSelected ? 'selected' : ''}`}
+        data-element-id={elementData.$id}
         style={{
           position: "absolute",
           left: 0,
@@ -211,7 +274,10 @@ function ImageCard({ cardData: elementData, camera, scale = 1, isPanning, onCard
               onFocus={(e) => e.target.select()}
               onBlur={saveTitle}
               onKeyDown={(e) => {
-                if (e.key === "Enter") saveTitle();
+                if (e.key === "Enter" || e.key === "Tab") {
+                  e.preventDefault();
+                  saveTitle();
+                }
                 if (e.key === "Escape") {
                   setEditingTitle(false);
                   setDraftTitle(elementData.title);

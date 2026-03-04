@@ -17,6 +17,10 @@ export default function Canvas({ projectData, isOwner }) {
   const panOffset = useRef({ x: 0, y: 0 });
   const wheelTimeout = useRef(null);
   const [elements, setElements] = useState([]);
+  const [selectedElements, setSelectedElements] = useState([]);
+  const [selectionBox, setSelectionBox] = useState(null);
+  const [isSelecting, setIsSelecting] = useState(false);
+  const selectionThresholdMet = useRef(false);
 
   const targetScale = useRef(1);
   const currentScale = useRef(1);
@@ -26,6 +30,7 @@ export default function Canvas({ projectData, isOwner }) {
 
   const MIN_SCALE = 0.1;
   const MAX_SCALE = 5;
+  const SELECTION_THRESHOLD = 10; // pixels
 
   const { user } = useAuth();
   const isUserOwner = isOwner;
@@ -114,6 +119,44 @@ export default function Canvas({ projectData, isOwner }) {
     });
   };
 
+  const toggleElementSelection = (elementId, isMultiSelect) => {
+    if (isMultiSelect) {
+      setSelectedElements((prev) => {
+        if (prev.includes(elementId)) {
+          return prev.filter((id) => id !== elementId);
+        } else {
+          return [...prev, elementId];
+        }
+      });
+    } else {
+      setSelectedElements([elementId]);
+    }
+  };
+
+  const clearSelection = () => {
+    setSelectedElements([]);
+  };
+
+  const deleteSelectedElements = async () => {
+    if (!isUserOwner || selectedElements.length === 0) return;
+
+    const elementsToDelete = [...selectedElements];
+    setSelectedElements([]);
+
+    for (const elementId of elementsToDelete) {
+      try {
+        removeElement(elementId);
+        await tablesDB.deleteRow({
+          databaseId: "taski",
+          tableId: "elements",
+          rowId: elementId,
+        });
+      } catch (error) {
+        console.error("Failed to delete element:", error);
+      }
+    }
+  };
+
   const loadElements = async () => {
     if (!projectData) return;
     try {
@@ -185,6 +228,28 @@ export default function Canvas({ projectData, isOwner }) {
     const handleKeyDown = (e) => {
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
 
+      // Escape to cancel selection or clear selection
+      if (e.key === 'Escape') {
+        if (isSelecting) {
+          e.preventDefault();
+          setIsSelecting(false);
+          setSelectionBox(null);
+          return;
+        }
+        if (selectedElements.length > 0) {
+          e.preventDefault();
+          clearSelection();
+          return;
+        }
+      }
+
+      // Delete selected elements
+      if ((e.key === 'Delete' || e.key === 'Backspace') && selectedElements.length > 0) {
+        e.preventDefault();
+        deleteSelectedElements();
+        return;
+      }
+
       if (e.ctrlKey || e.metaKey) {
         const originX = window.innerWidth / 2;
         const originY = window.innerHeight / 2;
@@ -202,13 +267,17 @@ export default function Canvas({ projectData, isOwner }) {
           if (!animFrameId.current) {
             animFrameId.current = requestAnimationFrame(animateZoom);
           }
+        } else if (e.key === 'a') {
+          // Select all elements
+          e.preventDefault();
+          setSelectedElements(elements.map((el) => el.$id));
         }
       }
     };
 
     window.addEventListener("keydown", handleKeyDown, { passive: false });
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [startAnimatedZoom, animateZoom]);
+  }, [startAnimatedZoom, animateZoom, selectedElements, deleteSelectedElements, elements, isSelecting]);
 
   useEffect(() => {
     const wrapper = wrapperRef.current;
@@ -258,6 +327,21 @@ export default function Canvas({ projectData, isOwner }) {
   const handlePointerDown = (e) => {
     const isMousePan = e.pointerType === "mouse" && (e.button === 2 || e.button === 1);
     const isTouchPan = e.pointerType === "touch" && e.target === canvasRef.current;
+    const isCanvasClick = e.target === canvasRef.current && e.button === 0;
+
+    if (isCanvasClick && !isMousePan && !isTouchPan) {
+      // Start selection box
+      if (!e.ctrlKey && !e.metaKey) {
+        clearSelection();
+      }
+      setIsSelecting(true);
+      selectionThresholdMet.current = false;
+      const startX = (e.clientX - currentCamera.current.x) / currentScale.current;
+      const startY = ((e.clientY - 55) - currentCamera.current.y) / currentScale.current;
+      setSelectionBox({ startX, startY, endX: startX, endY: startY });
+      canvasRef.current.setPointerCapture(e.pointerId);
+      return;
+    }
 
     if (!isMousePan && !isTouchPan) return;
 
@@ -267,6 +351,25 @@ export default function Canvas({ projectData, isOwner }) {
   };
 
   const handlePointerMove = (e) => {
+    if (isSelecting && selectionBox) {
+      const endX = (e.clientX - currentCamera.current.x) / currentScale.current;
+      const endY = ((e.clientY - 55) - currentCamera.current.y) / currentScale.current;
+      
+      // Check if we've moved enough to show the selection box
+      if (!selectionThresholdMet.current) {
+        const dx = Math.abs(endX - selectionBox.startX) * currentScale.current;
+        const dy = Math.abs(endY - selectionBox.startY) * currentScale.current;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        
+        if (distance > SELECTION_THRESHOLD) {
+          selectionThresholdMet.current = true;
+        }
+      }
+      
+      setSelectionBox({ ...selectionBox, endX, endY});
+      return;
+    }
+
     if (!panning) return;
     if (e.pointerType !== "mouse" && e.pointerType !== "touch") return;
 
@@ -280,10 +383,56 @@ export default function Canvas({ projectData, isOwner }) {
   };
 
   const handlePointerUp = (e) => {
+    if (isSelecting && selectionBox) {
+      // Finalize selection
+      const { startX, startY, endX, endY } = selectionBox;
+      const minX = Math.min(startX, endX);
+      const maxX = Math.max(startX, endX);
+      const minY = Math.min(startY, endY);
+      const maxY = Math.max(startY, endY);
+
+      // Find elements within selection box
+      const selectedIds = elements.filter((el) => {
+        const elX = el.x || 0;
+        const elY = el.y || 0;
+        // Approximate element dimensions based on type
+        const elWidth = el.type === 'card' || el.type === 'image' ? 260 : 200;
+        const elHeight = el.type === 'card' || el.type === 'image' ? 100 : 45;
+
+        // Check for intersection
+        return !(elX + elWidth < minX || elX > maxX || elY + elHeight < minY || elY > maxY);
+      }).map(el => el.$id);
+
+      if (e.ctrlKey || e.metaKey) {
+        // Add to existing selection
+        setSelectedElements((prev) => {
+          const combined = [...prev, ...selectedIds];
+          return [...new Set(combined)]; // Remove duplicates
+        });
+      } else {
+        setSelectedElements(selectedIds);
+      }
+
+      setIsSelecting(false);
+      setSelectionBox(null);
+      selectionThresholdMet.current = false;
+      if (canvasRef.current && canvasRef.current.hasPointerCapture(e.pointerId)) {
+        canvasRef.current.releasePointerCapture(e.pointerId);
+      }
+      return;
+    }
+
     setPanning(false);
     if (canvasRef.current && canvasRef.current.hasPointerCapture(e.pointerId)) {
       canvasRef.current.releasePointerCapture(e.pointerId);
     }
+  };
+
+  const handlePointerCancel = () => {
+    setIsSelecting(false);
+    setSelectionBox(null);
+    setPanning(false);
+    selectionThresholdMet.current = false;
   };
 
   const handleDrop = async (e) => {
@@ -333,8 +482,8 @@ export default function Canvas({ projectData, isOwner }) {
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
-      onPointerCancel={handlePointerUp}
-      onPointerLeave={handlePointerUp}
+      onPointerCancel={handlePointerCancel}
+      onPointerLeave={handlePointerCancel}
       onDragOver={(e) => e.preventDefault()}
       onDrop={handleDrop}
     >
@@ -364,7 +513,10 @@ export default function Canvas({ projectData, isOwner }) {
               isPanning: panning,
               zIndex: el.zIndex || index + 1,
               onDelete: removeElement,
-              onCardClick: handleElementZIndex
+              onCardClick: handleElementZIndex,
+              isSelected: selectedElements.includes(el.$id),
+              onToggleSelect: toggleElementSelection,
+              selectedElements,
             };
 
             switch (el.type) {
@@ -379,6 +531,24 @@ export default function Canvas({ projectData, isOwner }) {
             }
           })}
         </div>
+
+        {/* Selection Box */}
+        {selectionBox && selectionThresholdMet.current && (
+          <div
+            style={{
+              position: "absolute",
+              left: Math.min(selectionBox.startX, selectionBox.endX) * scale + camera.x,
+              top: Math.min(selectionBox.startY, selectionBox.endY) * scale + camera.y,
+              width: Math.abs(selectionBox.endX - selectionBox.startX) * scale,
+              height: Math.abs(selectionBox.endY - selectionBox.startY) * scale,
+              border: "1px solid var(--accent)",
+              backgroundColor: "rgba(var(--accent-rgb), 0.08)",
+              borderRadius: "8px",
+              pointerEvents: "none",
+              zIndex: 999999,
+            }}
+          />
+        )}
       </div>
 
       <div style={styles.zoomControls}>

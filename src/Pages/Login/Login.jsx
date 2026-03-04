@@ -7,6 +7,7 @@ import { SiGithub, SiGoogle } from "@icons-pack/react-simple-icons";
 import GithubIcon from "../../components/GithubIcon";
 import Spinner from "../../components/Spinner/Spinner";
 import "./Login.css";
+import ContactIcon from "@/components/ContactIcon";
 
 function Login() {
   const [isLoading, setIsLoading] = useState(false);
@@ -114,12 +115,13 @@ function Login() {
 
         <p className="login-tos">
           By using Taski, you agree to our{" "}
-          <span className="login-tos-button">Terms of Service</span> and{" "}
-          <span className="login-tos-button">Privacy Policy</span>.
+          <span className="login-tos-button" onClick={() => window.open("/tos", "_blank")}>Terms of Service</span> and{" "}
+          <span className="login-tos-button" onClick={() => window.open("/privacy-policy", "_blank")}>Privacy Policy</span>.
         </p>
       </div>
 
       <GithubIcon />
+      <ContactIcon />
     </div>
   );
 }

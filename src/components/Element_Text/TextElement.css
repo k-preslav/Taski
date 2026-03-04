@@ -26,6 +26,11 @@
   border-color: var(--muted-2);
 }
 
+.text-element-wrapper.selected {
+  border: 1px solid var(--accent);
+  box-shadow: 0 0 0 1px rgba(var(--accent-rgb), 0.15);
+}
+
 .text-element-wrapper:hover .text-delete-btn {
   opacity: 1;
 }

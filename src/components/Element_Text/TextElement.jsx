@@ -5,7 +5,7 @@ import Confirmation from "../Confirmation/Confirmation";
 import "./TextElement.css";
 
 // --- UPDATED: Added `scale = 1` ---
-function TextElement({ textData, camera, scale = 1, isPanning, onCardClick, zIndex, onDelete, isUserOwner }) {
+function TextElement({ textData, camera, scale = 1, isPanning, onCardClick, zIndex, onDelete, isUserOwner, isSelected, onToggleSelect, selectedElements }) {
   const [position, setPosition] = useState({
     x: textData.x || 0,
     y: textData.y || 0,
@@ -85,6 +85,18 @@ function TextElement({ textData, camera, scale = 1, isPanning, onCardClick, zInd
     if (e.button !== 0 || editing || !isUserOwner) return;
 
     e.stopPropagation();
+    
+    const isMultiSelect = e.ctrlKey || e.metaKey;
+    
+    if (isMultiSelect) {
+      onToggleSelect(textData.$id, true);
+      return;
+    }
+
+    if (!isSelected) {
+      onToggleSelect(textData.$id, false);
+    }
+
     onCardClick(textData.$id);
 
     setDragging(true);
@@ -107,10 +119,31 @@ function TextElement({ textData, camera, scale = 1, isPanning, onCardClick, zInd
     const mouseWorldX = (e.clientX - camera.x) / scale;
     const mouseWorldY = (e.clientY - camera.y) / scale;
 
-    setPosition({
-      x: mouseWorldX - offset.current.x,
-      y: mouseWorldY - offset.current.y,
-    });
+    const newX = mouseWorldX - offset.current.x;
+    const newY = mouseWorldY - offset.current.y;
+    
+    const deltaX = newX - position.x;
+    const deltaY = newY - position.y;
+
+    setPosition({ x: newX, y: newY });
+
+    // If multiple elements are selected, update them all
+    if (selectedElements.length > 1 && selectedElements.includes(textData.$id)) {
+      selectedElements.forEach((id) => {
+        if (id !== textData.$id) {
+          const otherElement = document.querySelector(`[data-element-id="${id}"]`);
+          if (otherElement) {
+            const currentTransform = otherElement.style.transform;
+            const match = currentTransform.match(/translate\(([-\d.]+)px, ([-\d.]+)px\)/);
+            if (match) {
+              const currentX = parseFloat(match[1]);
+              const currentY = parseFloat(match[2]);
+              otherElement.style.transform = `translate(${currentX + deltaX}px, ${currentY + deltaY}px)`;
+            }
+          }
+        }
+      });
+    }
   };
 
   const handlePointerUp = async (e) => {
@@ -119,12 +152,42 @@ function TextElement({ textData, camera, scale = 1, isPanning, onCardClick, zInd
     if (e.target.hasPointerCapture(e.pointerId)) {
       e.target.releasePointerCapture(e.pointerId);
     }
-    await updateTextData();
+
+    // Update all selected elements if multiple are selected
+    if (selectedElements.length > 1 && selectedElements.includes(textData.$id)) {
+      await Promise.all(
+        selectedElements.map(async (id) => {
+          const otherElement = document.querySelector(`[data-element-id="${id}"]`);
+          if (otherElement) {
+            const currentTransform = otherElement.style.transform;
+            const match = currentTransform.match(/translate\(([-\d.]+)px, ([-\d.]+)px\)/);
+            if (match) {
+              const finalX = parseFloat(match[1]);
+              const finalY = parseFloat(match[2]);
+              
+              try {
+                await tablesDB.updateRow({
+                  databaseId: "taski",
+                  tableId: "elements",
+                  rowId: id,
+                  data: { x: finalX, y: finalY },
+                });
+              } catch (error) {
+                console.error("Failed to update element:", error);
+              }
+            }
+          }
+        })
+      );
+    } else {
+      await updateTextData();
+    }
   };
 
   return (
     <div
-      className={`text-element-wrapper ${editing ? "is-editing" : ""}`}
+      className={`text-element-wrapper ${editing ? "is-editing" : ""} ${isSelected ? "selected" : ""}`}
+      data-element-id={textData.$id}
       style={{
         // --- UPDATED: Apply scale to translation and CSS transform ---
         position: "absolute",

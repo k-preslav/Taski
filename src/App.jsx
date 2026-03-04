@@ -6,6 +6,8 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import Projects from "./Pages/Projects/Projects";
 import LandingPage from "./Pages/LandingPage/LandingPage";
 import AccountSettings from "./Pages/AccountSettings";
+import TermsOfService from "./Pages/TermsOfService";
+import PrivacyPolicy from "./Pages/PrivacyPolicy";
 
 import "./index.css";
 
@@ -15,6 +17,8 @@ function App() {
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<Login />} />
       <Route path="/oauth" element={<OAuthCallback />} />
+      <Route path="/tos" element={<TermsOfService />} />
+      <Route path="/privacy-policy" element={<PrivacyPolicy />} />
       <Route
         path="/project/:id"
         element={

@@ -16,6 +16,7 @@
   --danger-bg: #3d2323;
   --danger-border: #542b2b;
   --accent: #d579ff;
+  --accent-rgb: 213, 121, 255;
   --accent2: #ffd149;
   --glass: rgba(255,255,255,0.03);
   --shadow: 0 10px 30px rgba(0,0,0,0.3);
@@ -41,6 +42,7 @@
   --danger-bg: #fee2e2;
   --danger-border: #fca5a5;
   --accent: #d579ff;
+  --accent-rgb: 213, 121, 255;
   --accent2: #b88012;
   --glass: rgba(2,6,23,0.04);
   --shadow: 0 10px 30px rgba(2,6,23,0.06);

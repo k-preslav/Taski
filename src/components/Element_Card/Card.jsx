@@ -4,7 +4,7 @@ import { tablesDB } from "../../appwrite/config";
 import { MenuIcon, Trash2Icon } from "lucide-react";
 import Confirmation from "../Confirmation/Confirmation";
 
-function Card({ cardData: elementData, camera, scale = 1, isPanning, onCardClick, zIndex, onDelete, isUserOwner }) {
+function Card({ cardData: elementData, camera, scale = 1, isPanning, onCardClick, zIndex, onDelete, isUserOwner, isSelected, onToggleSelect, selectedElements }) {
   const cardRef = useRef(null);
 
   const [position, setPosition] = useState({
@@ -93,6 +93,18 @@ function Card({ cardData: elementData, camera, scale = 1, isPanning, onCardClick
   const handlePointerDown = (e) => {
     if (e.button !== 0 || editingContent || editingTitle || !isUserOwner) return;
 
+    const isMultiSelect = e.ctrlKey || e.metaKey;
+    
+    if (isMultiSelect) {
+      onToggleSelect(elementData.$id, true);
+      e.stopPropagation();
+      return;
+    }
+
+    if (!isSelected) {
+      onToggleSelect(elementData.$id, false);
+    }
+
     onCardClick(elementData.$id);
     setDragging(true);
 
@@ -110,14 +122,35 @@ function Card({ cardData: elementData, camera, scale = 1, isPanning, onCardClick
   const handlePointerMove = (e) => {
     if (!isUserOwner || !dragging) return;
 
-    // --- UPDATED: Calculate movement based on world coordinates ---
+    // Calculate movement based on world coordinates
     const mouseWorldX = (e.clientX - camera.x) / scale;
     const mouseWorldY = (e.clientY - camera.y) / scale;
 
-    setPosition({
-      x: mouseWorldX - offset.current.x,
-      y: mouseWorldY - offset.current.y,
-    });
+    const newX = mouseWorldX - offset.current.x;
+    const newY = mouseWorldY - offset.current.y;
+    
+    const deltaX = newX - position.x;
+    const deltaY = newY - position.y;
+
+    setPosition({ x: newX, y: newY });
+
+    // If multiple elements are selected, update them all
+    if (selectedElements.length > 1 && selectedElements.includes(elementData.$id)) {
+      selectedElements.forEach((id) => {
+        if (id !== elementData.$id) {
+          const otherElement = document.querySelector(`[data-element-id="${id}"]`);
+          if (otherElement) {
+            const currentTransform = otherElement.style.transform;
+            const match = currentTransform.match(/translate\(([-\d.]+)px, ([-\d.]+)px\)/);
+            if (match) {
+              const currentX = parseFloat(match[1]);
+              const currentY = parseFloat(match[2]);
+              otherElement.style.transform = `translate(${currentX + deltaX}px, ${currentY + deltaY}px)`;
+            }
+          }
+        }
+      });
+    }
   };
 
   const handlePointerUp = async (e) => {
@@ -128,7 +161,40 @@ function Card({ cardData: elementData, camera, scale = 1, isPanning, onCardClick
       e.target.releasePointerCapture(e.pointerId);
     }
 
-    await updateCardData();
+    // Update all selected elements if multiple are selected
+    if (selectedElements.length > 1 && selectedElements.includes(elementData.$id)) {
+      const deltaX = position.x - (elementData.x || 0);
+      const deltaY = position.y - (elementData.y || 0);
+
+      await Promise.all(
+        selectedElements.map(async (id) => {
+          const otherElement = document.querySelector(`[data-element-id="${id}"]`);
+          if (otherElement) {
+            const currentTransform = otherElement.style.transform;
+            const match = currentTransform.match(/translate\(([-\d.]+)px, ([-\d.]+)px\)/);
+            if (match) {
+              const finalX = parseFloat(match[1]);
+              const finalY = parseFloat(match[2]);
+              
+              try {
+                // Get element data from DOM or state
+                const elementIdAttr = otherElement.getAttribute('data-element-id');
+                await tablesDB.updateRow({
+                  databaseId: "taski",
+                  tableId: "elements",
+                  rowId: elementIdAttr,
+                  data: { x: finalX, y: finalY },
+                });
+              } catch (error) {
+                console.error("Failed to update element:", error);
+              }
+            }
+          }
+        })
+      );
+    } else {
+      await updateCardData();
+    }
   };
 
   const renderContent = () => {
@@ -198,7 +264,8 @@ function Card({ cardData: elementData, camera, scale = 1, isPanning, onCardClick
   return (
     <div
       ref={cardRef}
-      className="card"
+      className={`card ${isSelected ? 'selected' : ''}`}
+      data-element-id={elementData.$id}
       style={{
         position: "absolute",
         left: 0,
@@ -238,6 +305,22 @@ function Card({ cardData: elementData, camera, scale = 1, isPanning, onCardClick
               if (e.key === "Escape") {
                 setEditingTitle(false);
                 setDraftTitle(elementData.title);
+              }
+              if (e.key === "Tab") {
+                e.preventDefault();
+                setEditingTitle(false);
+                if (draftTitle !== elementData.title) {
+                  updateCardData({ title: draftTitle });
+                }
+                setEditingContent(true);
+                setTimeout(() => {
+                  const textarea = cardRef.current?.querySelector('.contentEditor');
+                  if (textarea) {
+                    textarea.focus();
+                    textarea.style.height = "auto";
+                    textarea.style.height = `${textarea.scrollHeight + 20}px`;
+                  }
+                }, 0);
               }
             }}
           />

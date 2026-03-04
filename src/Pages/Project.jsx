@@ -9,6 +9,7 @@ import Button from "../components/Button/Button";
 import Spinner from "../components/Spinner/Spinner";
 import ProjectSettings from "../components/ProjectSettings/ProjectSettings";
 import Canvas from "../components/Canvas/Canvas";
+import ContactIcon from "@/components/ContactIcon";
 
 function Project() {
   const { checkUser, user } = useAuth();

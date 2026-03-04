@@ -10,6 +10,7 @@ import GithubIcon from "../../components/GithubIcon";
 import Spinner from "../../components/Spinner/Spinner";
 
 import "./Projects.css";
+import ContactIcon from "@/components/ContactIcon";
 
 export default function Projects() {
   const { user, checkUser } = useAuth();
@@ -244,6 +245,7 @@ export default function Projects() {
       </div>
 
       <GithubIcon />
+      <ContactIcon />
     </div>
   );
 }
