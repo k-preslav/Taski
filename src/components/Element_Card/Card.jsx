@@ -4,7 +4,7 @@ import { tablesDB } from "../../appwrite/config";
 import { MenuIcon, Trash2Icon } from "lucide-react";
 import Confirmation from "../Confirmation/Confirmation";
 
-function Card({ cardData: elementData, camera, scale = 1, isPanning, onCardClick, zIndex, onDelete, isUserOwner, isSelected, onToggleSelect, selectedElements }) {
+function Card({ cardData: elementData, camera, scale = 1, isPanning, onCardClick, zIndex, onDelete, isUserOwner, isSelected, onToggleSelect, selectedElements, onUpdatePosition }) {
   const cardRef = useRef(null);
 
   const [position, setPosition] = useState({
@@ -133,6 +133,11 @@ function Card({ cardData: elementData, camera, scale = 1, isPanning, onCardClick
     const deltaY = newY - position.y;
 
     setPosition({ x: newX, y: newY });
+    
+    // Optimistically update position in Canvas state
+    if (onUpdatePosition) {
+      onUpdatePosition(elementData.$id, newX, newY);
+    }
 
     // If multiple elements are selected, update them all
     if (selectedElements.length > 1 && selectedElements.includes(elementData.$id)) {

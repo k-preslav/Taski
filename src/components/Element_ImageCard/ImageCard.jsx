@@ -8,7 +8,7 @@ import Confirmation from "../Confirmation/Confirmation";
 
 const BUCKET_ID = import.meta.env.VITE_APPWRITE_IMAGES_BUCKET_ID;
 
-function ImageCard({ cardData: elementData, camera, scale = 1, isPanning, onCardClick, zIndex, onDelete, isUserOwner, isSelected, onToggleSelect, selectedElements }) {
+function ImageCard({ cardData: elementData, camera, scale = 1, isPanning, onCardClick, zIndex, onDelete, isUserOwner, isSelected, onToggleSelect, selectedElements, onUpdatePosition }) {
   const cardRef = useRef(null);
   const fileInputRef = useRef(null);
 
@@ -127,6 +127,11 @@ function ImageCard({ cardData: elementData, camera, scale = 1, isPanning, onCard
     const deltaY = newY - position.y;
 
     setPosition({ x: newX, y: newY });
+    
+    // Optimistically update position in Canvas state
+    if (onUpdatePosition) {
+      onUpdatePosition(elementData.$id, newX, newY);
+    }
 
     // If multiple elements are selected, update them all
     if (selectedElements.length > 1 && selectedElements.includes(elementData.$id)) {

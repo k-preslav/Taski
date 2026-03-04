@@ -474,6 +474,14 @@ export default function Canvas({ projectData, isOwner }) {
     setElements((prev) => prev.filter((el) => el.$id !== elementId));
   };
 
+  const updateElementPosition = useCallback((elementId, newX, newY) => {
+    setElements((prev) =>
+      prev.map((el) =>
+        el.$id === elementId ? { ...el, x: newX, y: newY } : el
+      )
+    );
+  }, []);
+
   return (
     <div
       ref={wrapperRef}
@@ -517,6 +525,7 @@ export default function Canvas({ projectData, isOwner }) {
               isSelected: selectedElements.includes(el.$id),
               onToggleSelect: toggleElementSelection,
               selectedElements,
+              onUpdatePosition: updateElementPosition,
             };
 
             switch (el.type) {

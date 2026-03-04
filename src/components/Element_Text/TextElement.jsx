@@ -5,7 +5,7 @@ import Confirmation from "../Confirmation/Confirmation";
 import "./TextElement.css";
 
 // --- UPDATED: Added `scale = 1` ---
-function TextElement({ textData, camera, scale = 1, isPanning, onCardClick, zIndex, onDelete, isUserOwner, isSelected, onToggleSelect, selectedElements }) {
+function TextElement({ textData, camera, scale = 1, isPanning, onCardClick, zIndex, onDelete, isUserOwner, isSelected, onToggleSelect, selectedElements, onUpdatePosition }) {
   const [position, setPosition] = useState({
     x: textData.x || 0,
     y: textData.y || 0,
@@ -126,6 +126,11 @@ function TextElement({ textData, camera, scale = 1, isPanning, onCardClick, zInd
     const deltaY = newY - position.y;
 
     setPosition({ x: newX, y: newY });
+    
+    // Optimistically update position in Canvas state
+    if (onUpdatePosition) {
+      onUpdatePosition(textData.$id, newX, newY);
+    }
 
     // If multiple elements are selected, update them all
     if (selectedElements.length > 1 && selectedElements.includes(textData.$id)) {
