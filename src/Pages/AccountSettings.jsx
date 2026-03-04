@@ -252,6 +252,11 @@ export default function AccountSettings() {
           <LogOutIcon size={18} />
           <span>Log Out</span>
         </Button>
+
+        <p style={styles.tos}>
+          <span style={styles.tosButton} onClick={() => window.open("/tos", "_blank")}>Terms of Service</span> {" • "}
+          <span style={styles.tosButton} onClick={() => window.open("/privacy-policy", "_blank")}>Privacy Policy</span>.
+        </p>
       </div>
       <GithubIcon />
       <ContactIcon />
@@ -385,5 +390,18 @@ const styles = {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
+  },
+  tos: {
+    color: "var(--text-muted)",
+    fontSize: "14px",
+    marginTop: "18px",
+    width: "100%",
+    textAlign: "center",
+    lineHeight: "1.5",
+  },
+  tosButton: {
+    color: "var(--text-muted)",
+    textDecoration: "underline",
+    cursor: "pointer",
   }
 };
