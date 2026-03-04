@@ -58,6 +58,26 @@
     background: rgba(255,255,255,0.02);
 }
 
+.login-button {
+    background: var(--bg);
+    border: none;
+    color: white;
+    padding: 20px 16px;
+    border-radius: 99px;
+    border: 1px solid var(--border);
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 32px;
+}
+
+.login-button:hover {
+    opacity: 0.9;
+}
+
 .brand:hover {
     background: var(--panel);
 }

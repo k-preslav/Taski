@@ -19,14 +19,7 @@ function App() {
       <Route path="/oauth" element={<OAuthCallback />} />
       <Route path="/tos" element={<TermsOfService />} />
       <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-      <Route
-        path="/project/:id"
-        element={
-          <ProtectedRoute>
-            <Project />
-          </ProtectedRoute>
-        }
-      />
+      <Route path="/project/:id" element={<Project />} />
       <Route
         path="/projects"
         element={

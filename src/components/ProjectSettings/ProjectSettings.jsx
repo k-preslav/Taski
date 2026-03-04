@@ -14,6 +14,7 @@ export default function ProjectSettings({
 }) {
   const [name, setName] = useState(project?.name || "");
   const [isPublic, setIsPublic] = useState(project?.isPublic || false);
+  const [requireLogin, setRequireLogin] = useState(project?.requireLogin ?? true);
   const [collabIds, setCollabIds] = useState(project?.collabIds || []);
   const [searchTerm, setSearchTerm] = useState("");
   const [searchResults, setSearchResults] = useState([]);
@@ -117,7 +118,7 @@ export default function ProjectSettings({
   };
 
   const handleSave = () => {
-    onSave(name, isPublic, collabIds);
+    onSave(name, isPublic, requireLogin, collabIds);
     handleClose();
   };
 
@@ -170,6 +171,31 @@ export default function ProjectSettings({
               </button>
             </div>
           </div>
+
+          {isPublic && (
+            <div className="settings-group">
+              <label className="settings-label">REQUIRE LOGIN</label>
+              <div className="pill-toggle">
+                <div
+                  className={`pill-toggle__slider ${!requireLogin ? "pill-toggle__slider--right" : ""}`}
+                />
+                <button
+                  type="button"
+                  className={`pill-toggle__btn ${requireLogin ? "is-active" : ""}`}
+                  onClick={() => setRequireLogin(true)}
+                >
+                  Yes
+                </button>
+                <button
+                  type="button"
+                  className={`pill-toggle__btn ${!requireLogin ? "is-active" : ""}`}
+                  onClick={() => setRequireLogin(false)}
+                >
+                  No
+                </button>
+              </div>
+            </div>
+          )}
 
           <div className="settings-group">
             <label className="settings-label">COLLABORATORS</label>

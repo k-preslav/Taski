@@ -1,13 +1,15 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useId } from "react";
 import { useNavigate } from "react-router-dom";
+import { MonitorCheckIcon, ArrowRight } from "lucide-react";
 import LightRays from "@/components/LightRays/LightRays";
+import { SiGithub } from "@icons-pack/react-simple-icons";
 import "./LandingPage.css";
-import TextPressure from "@/components/TextPressure";
 
-const SHUFFLE_WORDS = ["developers", "creators", "cool people"];
+const ROTATING_WORDS = ["developers", "creators", "cool people"];
 
 export default function LandingPage() {
   const navigate = useNavigate();
+  const gradientId = useId();
   const [wordIndex, setWordIndex] = useState(0);
   const [isExiting, setIsExiting] = useState(false);
 
@@ -15,7 +17,7 @@ export default function LandingPage() {
     const interval = setInterval(() => {
       setIsExiting(true);
       setTimeout(() => {
-        setWordIndex((prev) => (prev + 1) % SHUFFLE_WORDS.length);
+        setWordIndex((prev) => (prev + 1) % ROTATING_WORDS.length);
         setIsExiting(false);
       }, 400);
     }, 3000);
@@ -23,16 +25,16 @@ export default function LandingPage() {
   }, []);
 
   return (
-    <div className="page">
-      <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none', overflow: 'hidden' }}>
+    <div className="landing-page">
+      <div className="light-rays-container">
         <LightRays
           raysOrigin="top-center"
-          raysColor="#ffffff"
+          raysColor="#6366f1"
           raysSpeed={0.3}
-          lightSpread={1}
+          lightSpread={2}
           rayLength={2}
           pulsating={false}
-          fadeDistance={0.5}
+          fadeDistance={0.8}
           saturation={1}
           followMouse
           mouseInfluence={0.17}
@@ -41,70 +43,72 @@ export default function LandingPage() {
         />
       </div>
 
-      <div style={{ marginBottom: '21px' }}>
-        <TextPressure
-          text="Taski"
-          flex
-          alpha={false}
-          stroke={false}
-          weight={true}
-          italic
-          textColor="#ffffff"
-          fontSize={'12rem'}
-        />
-      </div>
+      <div className="landing-container">
+        <div className="hero-section">
+          <div className="hero-title-container">
+            <MonitorCheckIcon
+              size={126}
+              strokeWidth={2.5}
+              stroke={`url(#${gradientId})`}
+              className="icon"
+            >
+              <defs>
+                <linearGradient
+                  id={gradientId}
+                  x1="0"
+                  y1="0"
+                  x2="24"
+                  y2="0"
+                  gradientUnits="userSpaceOnUse"
+                >
+                  <stop offset="0%" stopColor="#a0a0a0" />
+                  <stop offset="100%" stopColor="#ffffff" />
+                </linearGradient>
+              </defs>
+            </MonitorCheckIcon>
+            <h1 className="hero-title">Taski</h1>
+          </div>
 
-      <div className="sentence-container">
-        <TextPressure
-          text="The productivity tool for"
-          alpha={false}
-          stroke={false}
-          italic={false}
-          weight={true}
-          textColor="var(--text-subtle)"
-          fontSize={'2rem'}
-        />
+          <div className="hero-subtitle">
+            <span>A visual planning space for </span>
+            <div className="rotating-word-container">
+              <span className={`rotating-word ${isExiting ? "exiting" : "entering"}`}>
+                {ROTATING_WORDS[wordIndex]}
+              </span>
+            </div>
+          </div>
 
-        <div className="sliding-word-wrapper">
-          <div className={`sliding-word ${isExiting ? "exiting" : "entering"}`}>
-            <TextPressure
-              text={SHUFFLE_WORDS[wordIndex]}
-              alpha={false}
-              stroke={false}
-              italic={false}
-              weight={true}
-              textColor="var(--text-subtle)"
-              fontSize={'2rem'}
-            />
+          <p className="hero-description">
+            Free and open-source, collaboration ready
+          </p>
+
+          <div className="cta-group">
+            <button className="get-started-button" onClick={() => navigate("/projects")}>
+              Get Started
+              <ArrowRight size={20} />
+            </button>
+            <a
+              href="https://taski.dev/project/69a096b3003b07e6a9c3"
+              target="_blank"
+              rel="noreferrer"
+              className="demo-button"
+            >
+              View Demo
+            </a>
           </div>
         </div>
-      </div>
 
-      <div style={{ marginTop: '7rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
-        <div>
-          <TextPressure
-            text="It's free!"
-            alpha={true}
-            stroke={false}
-            italic={false}
-            weight={true}
-            textColor="var(--text-subtle)"
-            fontSize={'1.5rem'}
-          />
-        </div>
-        <button
-          className="get-started-button"
-          onClick={() => {
-            navigate("/projects");
-          }}
-        >
-          Get Started
-        </button>
-        <a style={{ color: "#c3c3c3", textDecoration: "none" }} href="https://taski.dev/project/69a096b3003b07e6a9c3" target="_blank" rel="noreferrer">View example</a>
-      </div>
-
-      <div className="footer-text">
-        And it's open source! <a href="https://github.com/k-preslav/Taski" target="_blank" rel="noreferrer">View on GitHub</a>
+        <footer className="landing-footer">
+          <a
+            href="https://github.com/k-preslav/Taski"
+            target="_blank"
+            rel="noreferrer"
+            className="github-link"
+          >
+            <SiGithub size={18} />
+            View on GitHub
+          </a>
+        </footer>
       </div>
     </div>
   );

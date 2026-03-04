@@ -142,12 +142,23 @@ export default function TopBar({
 
         {showAccountIcon && (
           <>
-            {projectData?.collabIds?.length > 0 && <CollabPanel projectData={projectData}/>}
-            <AccountBubble onClick={() => setOpenAccountMenu(!openAccountMenu)} isOwner={isOwner} />
+            {!user && projectData?.requireLogin === false ? (
+              <button
+                className="login-button"
+                onClick={() => navigate("/login")}
+              >
+                Log In
+              </button>
+            ) : user && (
+              <>
+                {projectData?.collabIds?.length > 0 && <CollabPanel projectData={projectData}/>}
+                <AccountBubble onClick={() => setOpenAccountMenu(!openAccountMenu)} isOwner={isOwner} />
+              </>
+            )}
           </>
         )}
 
-        {openAccountMenu && (
+        {openAccountMenu && user && (
           <div className="dropdown-menu dropdown-menu--right">
             <div className="menu-label">{user?.name || "Guest"}</div>
             <div className="menu-divider" />
@@ -166,6 +177,7 @@ export default function TopBar({
               onClick={() => {
                 setOpenAccountMenu(false);
                 logout();
+                navigate("/login");
               }}
             >
               <LogOutIcon size={18} />

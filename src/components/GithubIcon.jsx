@@ -22,6 +22,6 @@ const styles = {
     zIndex: 9999,
     cursor: "pointer",
     display: "flex",
-    opacity: 0.25,
+    opacity: 0.5,
   },
 };

@@ -12,13 +12,14 @@ import Canvas from "../components/Canvas/Canvas";
 import ContactIcon from "@/components/ContactIcon";
 
 function Project() {
-  const { checkUser, user } = useAuth();
+  const { checkUser, user, loading: authLoading } = useAuth();
   const { id: projectId } = useParams();
   const [projectData, setProjectData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showProjectSettings, setShowProjectSettings] = useState(false);
   const [hasPermission, setHasPermission] = useState(true);
   const [isUserOwner, setIsUserOwner] = useState(false);
+  const [needsAuth, setNeedsAuth] = useState(false);
 
   const navigate = useNavigate();
 
@@ -27,7 +28,7 @@ function Project() {
     const loadData = async () => {
       setIsLoading(true);
       setHasPermission(true);
-      await checkUser();
+      setNeedsAuth(false);
 
       if (!projectId) {
         if (isMounted) setIsLoading(false);
@@ -35,15 +36,46 @@ function Project() {
       }
 
       try {
+        // First, try to load the project data
         const response = await tablesDB.getRow({
           databaseId: "taski",
           tableId: "projects",
           rowId: projectId,
         });
 
-        const isOwnerOrCollab =
+        // Check if this is a public project that doesn't require login
+        const isPublicNoAuth = response.isPublic && response.requireLogin === false;
+
+        // Wait for auth check to complete
+        if (!authLoading) {
+          await checkUser();
+        }
+
+        // Determine ownership/collaboration status if user exists
+        const isOwnerOrCollab = user ? (
           response.ownerId === user.$id ||
-          (response.collabIds && response.collabIds.includes(user.$id));
+          (response.collabIds && response.collabIds.includes(user.$id))
+        ) : false;
+
+        // If it's public and doesn't require login, allow access
+        if (isPublicNoAuth) {
+          if (isMounted) {
+            setProjectData(response);
+            setIsUserOwner(isOwnerOrCollab);
+            setHasPermission(true);
+            setIsLoading(false);
+          }
+          return;
+        }
+
+        // For projects that require login, check authentication
+        if (!user) {
+          if (isMounted) {
+            setNeedsAuth(true);
+            setIsLoading(false);
+          }
+          return;
+        }
 
         if (isMounted) {
           setIsUserOwner(isOwnerOrCollab);
@@ -69,10 +101,14 @@ function Project() {
     return () => {
       isMounted = false;
     };
-  }, [projectId]);
+  }, [projectId, authLoading]);
 
   useEffect(() => {
-    if (!projectData || !user) return;
+    if (!projectData) return;
+    
+    // Only subscribe to realtime updates if user is authenticated
+    // Public projects without login don't need realtime subscriptions
+    if (!user && projectData.requireLogin === false) return;
 
     let subscription;
     let isMounted = true;
@@ -92,16 +128,28 @@ function Project() {
               if (isMounted) {
                 setProjectData(payload);
 
-                const isOwnerOrCollab =
-                  payload.ownerId === user.$id ||
-                  (payload.collabIds && payload.collabIds.includes(user.$id));
-
-                setIsUserOwner(isOwnerOrCollab);
-
-                if (!payload.isPublic && !isOwnerOrCollab) {
-                  setHasPermission(false);
-                } else {
+                // Check if project now requires login
+                const isPublicNoAuth = payload.isPublic && payload.requireLogin === false;
+                
+                if (isPublicNoAuth) {
+                  setIsUserOwner(false);
                   setHasPermission(true);
+                } else if (user) {
+                  const isOwnerOrCollab =
+                    payload.ownerId === user.$id ||
+                    (payload.collabIds && payload.collabIds.includes(user.$id));
+
+                  setIsUserOwner(isOwnerOrCollab);
+
+                  if (!payload.isPublic && !isOwnerOrCollab) {
+                    setHasPermission(false);
+                  } else {
+                    setHasPermission(true);
+                  }
+                } else {
+                  // Project now requires login but user is not authenticated
+                  setNeedsAuth(true);
+                  setHasPermission(false);
                 }
               }
             }
@@ -137,16 +185,16 @@ function Project() {
         console.log("Project realtime subscription closed");
       }
     };
-  }, [projectData?.$id, user?.$id]);
+  }, [projectData?.$id, user]);
 
-  const updateProject = async (name, isPublic, collabIds) => {
-    setProjectData((prev) => ({ ...prev, name, isPublic, collabIds }));
+  const updateProject = async (name, isPublic, requireLogin, collabIds) => {
+    setProjectData((prev) => ({ ...prev, name, isPublic, requireLogin, collabIds }));
 
     await tablesDB.updateRow({
       databaseId: "taski",
       tableId: "projects",
       rowId: projectData.$id,
-      data: { name, isPublic, collabIds },
+      data: { name, isPublic, requireLogin, collabIds },
     });
   };
 
@@ -192,6 +240,16 @@ function Project() {
           <div style={styles.spinnerWrap}>
             <Spinner size={36} color="var(--text-muted)" />
           </div>
+        ) : needsAuth ? (
+          <div style={styles.centeredState}>
+            <LockIcon size={64} color="var(--text-muted)" />
+            <p style={styles.errorText}>Login Required</p>
+            <Button onClick={() => navigate("/login")}>
+              <span style={{ fontSize: "16px", color: "var(--text)" }}>
+                Go to Login
+              </span>
+            </Button>
+          </div>
         ) : !hasPermission ? (
           <div style={styles.centeredState}>
             <LockIcon size={64} color="var(--text-muted)" />
@@ -219,8 +277,8 @@ function Project() {
               <ProjectSettings
                 project={projectData}
                 onClose={() => setShowProjectSettings(false)}
-                onSave={(name, isPublic, collabIds) => {
-                  updateProject(name, isPublic, collabIds);
+                onSave={(name, isPublic, requireLogin, collabIds) => {
+                  updateProject(name, isPublic, requireLogin, collabIds);
                 }}
                 onDelete={deleteProject}
               />

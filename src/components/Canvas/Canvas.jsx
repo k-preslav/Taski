@@ -6,6 +6,7 @@ import { ID } from "appwrite";
 import CanvasTools from "./CanvasTools";
 import { useAuth } from "../../context/AuthContext";
 import ImageCard from "../Element_ImageCard/ImageCard";
+import Confirmation from "../Confirmation/Confirmation";
 
 export default function Canvas({ projectData, isOwner }) {
   const wrapperRef = useRef(null);
@@ -21,6 +22,7 @@ export default function Canvas({ projectData, isOwner }) {
   const [selectionBox, setSelectionBox] = useState(null);
   const [isSelecting, setIsSelecting] = useState(false);
   const selectionThresholdMet = useRef(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const targetScale = useRef(1);
   const currentScale = useRef(1);
@@ -142,6 +144,7 @@ export default function Canvas({ projectData, isOwner }) {
 
     const elementsToDelete = [...selectedElements];
     setSelectedElements([]);
+    setShowDeleteConfirm(false);
 
     for (const elementId of elementsToDelete) {
       try {
@@ -174,6 +177,9 @@ export default function Canvas({ projectData, isOwner }) {
   useEffect(() => {
     if (!projectData) return;
     loadElements();
+
+    // Only subscribe to realtime updates if user is authenticated
+    if (!user) return;
 
     let subscription;
     let isMounted = true;
@@ -222,7 +228,7 @@ export default function Canvas({ projectData, isOwner }) {
       isMounted = false;
       if (subscription) subscription.close();
     };
-  }, [projectData]);
+  }, [projectData, user]);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -246,7 +252,7 @@ export default function Canvas({ projectData, isOwner }) {
       // Delete selected elements
       if ((e.key === 'Delete' || e.key === 'Backspace') && selectedElements.length > 0) {
         e.preventDefault();
-        deleteSelectedElements();
+        setShowDeleteConfirm(true);
         return;
       }
 
@@ -337,7 +343,7 @@ export default function Canvas({ projectData, isOwner }) {
       setIsSelecting(true);
       selectionThresholdMet.current = false;
       const startX = (e.clientX - currentCamera.current.x) / currentScale.current;
-      const startY = ((e.clientY - 55) - currentCamera.current.y) / currentScale.current;
+      const startY = ((e.clientY) - currentCamera.current.y) / currentScale.current;
       setSelectionBox({ startX, startY, endX: startX, endY: startY });
       canvasRef.current.setPointerCapture(e.pointerId);
       return;
@@ -353,9 +359,9 @@ export default function Canvas({ projectData, isOwner }) {
   const handlePointerMove = (e) => {
     if (isSelecting && selectionBox) {
       const endX = (e.clientX - currentCamera.current.x) / currentScale.current;
-      const endY = ((e.clientY - 55) - currentCamera.current.y) / currentScale.current;
+      const endY = ((e.clientY) - currentCamera.current.y) / currentScale.current;
       
-      // Check if we've moved enough to show the selection box
+      // Check if the mouse has moved enough to show the selection box
       if (!selectionThresholdMet.current) {
         const dx = Math.abs(endX - selectionBox.startX) * currentScale.current;
         const dy = Math.abs(endY - selectionBox.startY) * currentScale.current;
@@ -570,6 +576,16 @@ export default function Canvas({ projectData, isOwner }) {
       </div>
 
       {isUserOwner && <CanvasTools />}
+
+      {showDeleteConfirm && (
+        <Confirmation
+          title={`Delete ${selectedElements.length} element${selectedElements.length > 1 ? 's' : ''}?`}
+          confirmText="Delete"
+          isDestructive={true}
+          onConfirm={deleteSelectedElements}
+          onCancel={() => setShowDeleteConfirm(false)}
+        />
+      )}
     </div>
   );
 }
