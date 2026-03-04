@@ -82,6 +82,7 @@ Create a new Appwrite project and set up the following:
   - `ownerId` (string)
   - `isPublic` (boolean)
   - `collabIds` (string array)
+  - `requireLogin` (boolean)
 
 **Storage:** Create a bucket for images
 
