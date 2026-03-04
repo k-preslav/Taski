@@ -4,7 +4,7 @@
 
 Taski is an infinite canvas task management tool designed for developers and creators who need flexibility and visual organization. Create cards, add notes, images, and collaborate in real-time.
 
-🌐 **Live Demo:** [taski.dev](https://taski.dev)
+🌐 **Live at:** [taski.dev](https://taski.dev)
 
 ---
 
