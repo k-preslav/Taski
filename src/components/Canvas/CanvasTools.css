@@ -1,6 +1,6 @@
 .tools-container {
-  position: absolute;
-  top: 16px;
+  position: fixed;
+  top: 74px;
   left: 50%;
   transform: translateX(-50%);
   
@@ -34,7 +34,7 @@
 }
 
 .canvasToolButn-icon {
-  color : var(--text-muted);
+  color: var(--text-muted);
   transform: translateX(-1px);
 }
 

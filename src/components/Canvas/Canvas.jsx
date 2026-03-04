@@ -588,7 +588,7 @@ const styles = {
     WebkitTouchCallout: "none",
   },
   canvas: {
-    position: "absolute",
+    position: "fixed",
     top: 0, left: 0, right: 0, bottom: 0,
     backgroundImage: `linear-gradient(to right, var(--grid) 1px, transparent 1px), linear-gradient(to bottom, var(--grid) 1px, transparent 1px)`,
     willChange: "transform, background-position, background-size",
