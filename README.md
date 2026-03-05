@@ -4,7 +4,8 @@
 
 Taski is an infinite canvas task management tool designed for developers and creators who need flexibility and visual organization. Create cards, add notes, images, and collaborate in real-time.
 
-🌐 **Live at:** [taski.dev](https://taski.dev)
+🌐 **Live at:** [taski.dev](https://taski.dev)  
+🗺️ **Live Roadmap & Active Tasks:** [Roadmap](https://taski.dev/project/69a096b3003b07e6a9c3)
 
 ---
 
@@ -82,6 +83,7 @@ Create a new Appwrite project and set up the following:
   - `ownerId` (string)
   - `isPublic` (boolean)
   - `collabIds` (string array)
+  - `requireLogin` (boolean)
 
 **Storage:** Create a bucket for images
 
