@@ -1,4 +1,4 @@
-import { Client, Account, TablesDB, Realtime, Storage } from "appwrite";
+import { Client, Account, TablesDB, Realtime, Storage, Channel } from "appwrite";
 
 const client = new Client();
 
@@ -14,7 +14,7 @@ export const account = new Account(client);
 export const tablesDB = new TablesDB(client);
 export const storage = new Storage(client);
 
-export { ID, Query } from "appwrite";
+export { ID, Query, Channel } from "appwrite";
 
 
 export default client;

@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import Card from "../Element_Card/Card";
 import TextElement from "../Element_Text/TextElement";
-import client, { Query, realtime, tablesDB } from "../../appwrite/config";
+import client, { Query, realtime, tablesDB, Channel } from "../../appwrite/config";
 import { ID } from "appwrite";
 import CanvasTools from "./CanvasTools";
 import { useAuth } from "../../context/AuthContext";
@@ -175,21 +175,17 @@ export default function Canvas({ projectData, isOwner }) {
   };
 
   useEffect(() => {
-    if (!projectData) return;
+    if (!projectData?.$id || !user?.$id) return;
+
     loadElements();
 
-    // Only subscribe to realtime updates if user is authenticated
-    if (!user) return;
-
-    let subscription;
     let isMounted = true;
+    let subscription = null;
 
     const setupRealtime = async () => {
       try {
-        const channelString = `databases.taski.tables.elements.rows`;
-
         const sub = await realtime.subscribe(
-          channelString,
+          "tablesdb.taski.tables.elements.rows",
           (response) => {
             const payload = response.payload;
             let events = response.events;
@@ -198,37 +194,55 @@ export default function Canvas({ projectData, isOwner }) {
             if (payload.projectId !== projectData.$id) return;
 
             setElements((prevElements) => {
-              if (events.some(e => e.includes(".create"))) {
+              if (events.some((e) => e.includes(".create"))) {
                 if (prevElements.some((el) => el.$id === payload.$id)) return prevElements;
                 return [...prevElements, payload];
               }
-              if (events.some(e => e.includes(".update"))) {
+
+              if (events.some((e) => e.includes(".update"))) {
                 return prevElements.map((el) =>
                   el.$id === payload.$id ? payload : el
                 );
               }
-              if (events.some(e => e.includes(".delete"))) {
+
+              if (events.some((e) => e.includes(".delete"))) {
                 return prevElements.filter((el) => el.$id !== payload.$id);
               }
+
               return prevElements;
             });
           }
         );
 
-        if (!isMounted) sub.close();
-        else subscription = sub;
+        // RACE CONDITION FIX: 
+        // If the component unmounted while we were waiting for the connection, 
+        // kill the socket immediately.
+        if (!isMounted) {
+          if (typeof sub.close === 'function') sub.close();
+          else if (typeof sub === 'function') sub();
+        } else {
+          subscription = sub;
+        }
       } catch (error) {
-        console.error(error);
+        console.error("Realtime subscription failed:", error);
       }
     };
 
     setupRealtime();
 
     return () => {
-      isMounted = false;
-      if (subscription) subscription.close();
+      isMounted = false; // Flag that the component is unmounting
+      
+      // Safe cleanup
+      if (subscription) {
+        if (typeof subscription.close === 'function') {
+          subscription.close();
+        } else if (typeof subscription === 'function') {
+          subscription();
+        }
+      }
     };
-  }, [projectData, user]);
+  }, [projectData?.$id, user?.$id]);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -610,9 +624,9 @@ const styles = {
     willChange: "transform, background-position, background-size",
   },
   zoomControls: {
-    position: "absolute",
-    bottom: "72px",
-    left: "12px",
+    position: "fixed",
+    bottom: "15px",
+    left: "15px",
     display: "flex",
     flexDirection: "row",
     gap: "8px",

@@ -8,6 +8,7 @@ import {
   LogOutIcon,
   Sun,
   Moon,
+  BadgeQuestionMarkIcon,
 } from "lucide-react";
 import { useTheme } from "../../context/ThemeContext";
 import AccountBubble from "../AccountBubble";
@@ -17,6 +18,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import CollabPanel from "./CollabPanel";
 import { tablesDB } from "../../appwrite/config";
+import HowToUse from "../HowToUse/HowToUse";
 
 export default function TopBar({
   projectName,
@@ -34,7 +36,42 @@ export default function TopBar({
   const projectRef = useRef(null);
   const accountRef = useRef(null);
 
+  const [showHowToUse, setShowHowToUse] = useState(false);
+
   const isOwner = projectData?.ownerId === user?.$id;
+
+  const disableHowToUse = async () => {
+    setShowHowToUse(false);
+    if (!user) return;
+
+    try {
+      await tablesDB.updateRow({
+        databaseId: "taski",
+        tableId: "accounts",
+        rowId: user.$id,
+        data: { showHowToUse: false },
+      }); 
+    } catch (err) {
+      console.error("Failed to update how-to-use preference:", err);
+    }
+  }
+
+  useEffect(() => {
+    if (!user?.$id) return;
+    if (!projectData) return;
+    
+    tablesDB.getRow({
+      databaseId: "taski",
+      tableId: "accounts",
+      rowId: user.$id,
+    }).then((res) => {
+      if (res.showHowToUse) {
+        setShowHowToUse(true);
+      }
+    }).catch((err) => {
+      console.error("Failed to fetch how-to-use preference:", err);
+    });
+  }, [user, projectData]);
 
   useEffect(() => {
     updateUserThemePref();
@@ -151,7 +188,7 @@ export default function TopBar({
               </button>
             ) : user && (
               <>
-                {projectData?.collabIds?.length > 0 && <CollabPanel projectData={projectData}/>}
+                {projectData?.collabIds?.length > 0 && <CollabPanel projectData={projectData} />}
                 <AccountBubble onClick={() => setOpenAccountMenu(!openAccountMenu)} isOwner={isOwner} />
               </>
             )}
@@ -173,6 +210,16 @@ export default function TopBar({
               Account Settings
             </button>
             <button
+              className="menu-item"
+              onClick={() => {
+                setOpenAccountMenu(false);
+                setShowHowToUse(true);
+              }}
+            >
+              <BadgeQuestionMarkIcon size={18} style={{ transform: 'translateX(-2px)' }} />
+              How to Use
+            </button>
+            <button
               className="menu-item menu-item--danger"
               onClick={() => {
                 setOpenAccountMenu(false);
@@ -186,6 +233,8 @@ export default function TopBar({
           </div>
         )}
       </div>
+
+      {showHowToUse && <HowToUse onClose={() => { disableHowToUse() }} />}
     </header>
   );
 }

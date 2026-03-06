@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { CrownIcon } from "lucide-react";
-import { tablesDB, storage, realtime } from "../appwrite/config";
+import { tablesDB, storage, realtime, Channel } from "../appwrite/config";
 import { useAuth } from "../context/AuthContext";
 import Spinner from "./Spinner/Spinner";
 
@@ -44,25 +44,35 @@ export default function AccountBubble({ size = 36, onClick, isOwner, accountId }
     if (!targetAccountId) return;
 
     let isMounted = true;
-    let subscription;
+    let subscription = null;
 
     const setupRealtime = async () => {
       try {
-        const channelString = `databases.taski.collections.accounts.documents`;
+        // Use the raw string instead of the Channel helper
+        const sub = await realtime.subscribe(
+          "tablesdb.taski.tables.accounts.rows",
+          (response) => {
+            if (!isMounted) return;
 
-        subscription = await realtime.subscribe(channelString, (response) => {
-          if (!isMounted) return;
+            const payload = response.payload;
+            let events = response.events;
+            events = Array.isArray(events) ? events : Object.values(events || {});
 
-          const payload = response.payload;
-          let events = response.events;
-          events = Array.isArray(events) ? events : Object.values(events || {});
-
-          if (payload.$id === targetAccountId) {
-            if (events.some((e) => e.includes(".update"))) {
-              setAccountIdData(payload);
+            // Local filtering: Only update if the event is for this specific bubble's account
+            if (payload.$id === targetAccountId) {
+              if (events.some((e) => e.includes(".update"))) {
+                setAccountIdData(payload);
+              }
             }
           }
-        });
+        );
+
+        if (!isMounted) {
+          if (typeof sub.close === 'function') sub.close();
+          else if (typeof sub === 'function') sub();
+        } else {
+          subscription = sub;
+        }
       } catch (error) {
         console.error("Failed to subscribe to account updates:", error);
       }
@@ -73,8 +83,8 @@ export default function AccountBubble({ size = 36, onClick, isOwner, accountId }
     return () => {
       isMounted = false;
       if (subscription) {
-        if (typeof subscription === "function") subscription();
-        else if (subscription.close) subscription.close();
+        if (typeof subscription.close === 'function') subscription.close();
+        else if (typeof subscription === 'function') subscription();
       }
     };
   }, [targetAccountId]);

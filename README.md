@@ -67,6 +67,7 @@ Create a new Appwrite project and set up the following:
   - `isAnon` (boolean)
   - `avatarId` (string)
   - `theme` (string)
+  - `showHowToUse` (boolean)
 
 - **elements**
   - `title` (string)

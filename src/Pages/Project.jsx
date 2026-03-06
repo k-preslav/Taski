@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import TopBar from "../components/TopBar/TopBar";
-import { ID, tablesDB, Query, realtime } from "../appwrite/config";
+import { ID, tablesDB, Query, realtime, Channel } from "../appwrite/config";
 import GithubIcon from "../components/GithubIcon";
 import { FrownIcon, LockIcon } from "lucide-react";
 import Button from "../components/Button/Button";
@@ -115,10 +115,8 @@ function Project() {
 
     const setupRealtime = async () => {
       try {
-        const channelString = `databases.taski.collections.projects.documents.${projectData.$id}`;
-
         const sub = await realtime.subscribe(
-          channelString,
+          Channel.tablesdb("taski").table("projects").row(projectId),
           (response) => {
             const payload = response.payload;
             let events = response.events;
@@ -162,10 +160,9 @@ function Project() {
             }
           }
         );
-
+        
         if (!isMounted) {
-          if (typeof sub === "function") sub();
-          else if (sub.close) sub.close();
+          sub.close();
         } else {
           subscription = sub;
           console.log("Project realtime subscription opened");
@@ -180,8 +177,7 @@ function Project() {
     return () => {
       isMounted = false;
       if (subscription) {
-        if (typeof subscription === "function") subscription();
-        else if (subscription.close) subscription.close();
+        subscription.close();
         console.log("Project realtime subscription closed");
       }
     };
