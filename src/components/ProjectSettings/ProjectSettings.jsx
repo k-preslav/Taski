@@ -2,9 +2,10 @@ import React, { useState, useEffect, useRef } from "react";
 import { X, Trash2, Save, Settings2, Search, Plus } from "lucide-react";
 import Confirmation from "../Confirmation/Confirmation";
 import AccountBubble from "../AccountBubble";
-import { tablesDB, Query } from "../../appwrite/config";
+import { tablesDB } from "../../appwrite/config";
 import "./ProjectSettings.css";
 import { useAuth } from "../../context/AuthContext";
+import { Query } from "appwrite";
 
 export default function ProjectSettings({
   project,

@@ -2,7 +2,9 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import TopBar from "../components/TopBar/TopBar";
-import { ID, tablesDB, Query, realtime, Channel } from "../appwrite/config";
+import { tablesDB } from "../appwrite/config";
+import { Query, ID } from "appwrite";
+import { useRealtime } from "../context/RealtimeContext";
 import GithubIcon from "../components/GithubIcon";
 import { FrownIcon, LockIcon } from "lucide-react";
 import Button from "../components/Button/Button";
@@ -22,6 +24,8 @@ function Project() {
   const [needsAuth, setNeedsAuth] = useState(false);
 
   const navigate = useNavigate();
+  const { addListener, removeListener } = useRealtime();
+  const [elementRealtimeEvent, setElementRealtimeEvent] = useState(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -104,84 +108,44 @@ function Project() {
   }, [projectId, authLoading]);
 
   useEffect(() => {
-    if (!projectData) return;
-    
-    // Only subscribe to realtime updates if user is authenticated
-    // Public projects without login don't need realtime subscriptions
-    if (!user && projectData.requireLogin === false) return;
+    if (!projectData?.$id) return;
 
-    let subscription;
-    let isMounted = true;
+    const projectListenerId = addListener("projects", (payload, events) => {
+      if (payload.$id !== projectId) return;
 
-    const setupRealtime = async () => {
-      try {
-        const sub = await realtime.subscribe(
-          Channel.tablesdb("taski").table("projects").row(projectId),
-          (response) => {
-            const payload = response.payload;
-            let events = response.events;
-            events = Array.isArray(events) ? events : Object.values(events || {});
-
-            if (events.some(e => e.includes(".update"))) {
-              if (isMounted) {
-                setProjectData(payload);
-
-                // Check if project now requires login
-                const isPublicNoAuth = payload.isPublic && payload.requireLogin === false;
-                
-                if (isPublicNoAuth) {
-                  setIsUserOwner(false);
-                  setHasPermission(true);
-                } else if (user) {
-                  const isOwnerOrCollab =
-                    payload.ownerId === user.$id ||
-                    (payload.collabIds && payload.collabIds.includes(user.$id));
-
-                  setIsUserOwner(isOwnerOrCollab);
-
-                  if (!payload.isPublic && !isOwnerOrCollab) {
-                    setHasPermission(false);
-                  } else {
-                    setHasPermission(true);
-                  }
-                } else {
-                  // Project now requires login but user is not authenticated
-                  setNeedsAuth(true);
-                  setHasPermission(false);
-                }
-              }
-            }
-
-            if (events.some(e => e.includes(".delete"))) {
-              if (isMounted) {
-                setProjectData(null);
-                setHasPermission(false);
-              }
-            }
-          }
-        );
-        
-        if (!isMounted) {
-          sub.close();
+      if (events.some((e) => e.includes(".update"))) {
+        setProjectData(payload);
+        const isPublicNoAuth = payload.isPublic && payload.requireLogin === false;
+        if (isPublicNoAuth) {
+          setIsUserOwner(false);
+          setHasPermission(true);
+        } else if (user) {
+          const isOwnerOrCollab =
+            payload.ownerId === user.$id ||
+            (payload.collabIds && payload.collabIds.includes(user.$id));
+          setIsUserOwner(isOwnerOrCollab);
+          setHasPermission(!payload.isPublic && !isOwnerOrCollab ? false : true);
         } else {
-          subscription = sub;
-          console.log("Project realtime subscription opened");
+          setNeedsAuth(true);
+          setHasPermission(false);
         }
-      } catch (error) {
-        console.error("Failed to subscribe to project realtime updates:", error);
       }
-    };
+      if (events.some((e) => e.includes(".delete"))) {
+        setProjectData(null);
+        setHasPermission(false);
+      }
+    });
 
-    setupRealtime();
+    const elementListenerId = addListener("elements", (payload, events) => {
+      if (payload.projectId !== projectData.$id) return;
+      setElementRealtimeEvent({ payload, events });
+    });
 
     return () => {
-      isMounted = false;
-      if (subscription) {
-        subscription.close();
-        console.log("Project realtime subscription closed");
-      }
+      removeListener("projects", projectListenerId);
+      removeListener("elements", elementListenerId);
     };
-  }, [projectData?.$id, user]);
+  }, [projectData?.$id, user?.$id, projectId]);
 
   const updateProject = async (name, isPublic, requireLogin, collabIds) => {
     setProjectData((prev) => ({ ...prev, name, isPublic, requireLogin, collabIds }));
@@ -268,7 +232,11 @@ function Project() {
           </div>
         ) : (
           <>
-            <Canvas projectData={projectData} isOwner={isUserOwner} />
+            <Canvas
+              projectData={projectData}
+              isOwner={isUserOwner}
+              realtimeEvent={elementRealtimeEvent}
+            />
             {showProjectSettings && (
               <ProjectSettings
                 project={projectData}

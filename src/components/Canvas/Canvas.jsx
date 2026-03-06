@@ -1,14 +1,15 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import Card from "../Element_Card/Card";
 import TextElement from "../Element_Text/TextElement";
-import client, { Query, realtime, tablesDB, Channel } from "../../appwrite/config";
+import { tablesDB } from "../../appwrite/config";
 import { ID } from "appwrite";
 import CanvasTools from "./CanvasTools";
 import { useAuth } from "../../context/AuthContext";
 import ImageCard from "../Element_ImageCard/ImageCard";
 import Confirmation from "../Confirmation/Confirmation";
+import { Query } from "appwrite";
 
-export default function Canvas({ projectData, isOwner }) {
+export default function Canvas({ projectData, isOwner, realtimeEvent }) {
   const wrapperRef = useRef(null);
   const canvasRef = useRef(null);
 
@@ -176,73 +177,28 @@ export default function Canvas({ projectData, isOwner }) {
 
   useEffect(() => {
     if (!projectData?.$id || !user?.$id) return;
-
     loadElements();
-
-    let isMounted = true;
-    let subscription = null;
-
-    const setupRealtime = async () => {
-      try {
-        const sub = await realtime.subscribe(
-          "tablesdb.taski.tables.elements.rows",
-          (response) => {
-            const payload = response.payload;
-            let events = response.events;
-            events = Array.isArray(events) ? events : Object.values(events || {});
-
-            if (payload.projectId !== projectData.$id) return;
-
-            setElements((prevElements) => {
-              if (events.some((e) => e.includes(".create"))) {
-                if (prevElements.some((el) => el.$id === payload.$id)) return prevElements;
-                return [...prevElements, payload];
-              }
-
-              if (events.some((e) => e.includes(".update"))) {
-                return prevElements.map((el) =>
-                  el.$id === payload.$id ? payload : el
-                );
-              }
-
-              if (events.some((e) => e.includes(".delete"))) {
-                return prevElements.filter((el) => el.$id !== payload.$id);
-              }
-
-              return prevElements;
-            });
-          }
-        );
-
-        // RACE CONDITION FIX: 
-        // If the component unmounted while we were waiting for the connection, 
-        // kill the socket immediately.
-        if (!isMounted) {
-          if (typeof sub.close === 'function') sub.close();
-          else if (typeof sub === 'function') sub();
-        } else {
-          subscription = sub;
-        }
-      } catch (error) {
-        console.error("Realtime subscription failed:", error);
-      }
-    };
-
-    setupRealtime();
-
-    return () => {
-      isMounted = false; // Flag that the component is unmounting
-      
-      // Safe cleanup
-      if (subscription) {
-        if (typeof subscription.close === 'function') {
-          subscription.close();
-        } else if (typeof subscription === 'function') {
-          subscription();
-        }
-      }
-    };
   }, [projectData?.$id, user?.$id]);
+
+  // Handle realtime element events forwarded from Project.jsx
+  useEffect(() => {
+    if (!realtimeEvent) return;
+    const { payload, events } = realtimeEvent;
+
+    setElements((prevElements) => {
+      if (events.some((e) => e.includes(".create"))) {
+        if (prevElements.some((el) => el.$id === payload.$id)) return prevElements;
+        return [...prevElements, payload];
+      }
+      if (events.some((e) => e.includes(".update"))) {
+        return prevElements.map((el) => (el.$id === payload.$id ? payload : el));
+      }
+      if (events.some((e) => e.includes(".delete"))) {
+        return prevElements.filter((el) => el.$id !== payload.$id);
+      }
+      return prevElements;
+    });
+  }, [realtimeEvent]);
 
   useEffect(() => {
     const handleKeyDown = (e) => {

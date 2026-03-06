@@ -3,7 +3,9 @@ import TopBar from "../../components/TopBar/TopBar";
 import ProjectButton from "../../components/ProjectButton/ProjectButton";
 import { useAuth } from "../../context/AuthContext";
 import AddButton from "../../components/AddButton/AddButton";
-import { ID, Query, realtime, tablesDB, Channel } from "../../appwrite/config";
+import { tablesDB } from "../../appwrite/config";
+import { useRealtime } from "../../context/RealtimeContext";
+import { Query , ID} from "appwrite";
 import { useNavigate } from "react-router-dom";
 import { ListIcon, SquircleDashedIcon, CrownIcon, UsersIcon } from "lucide-react";
 import GithubIcon from "../../components/GithubIcon";
@@ -15,6 +17,7 @@ import ContactIcon from "@/components/ContactIcon";
 export default function Projects() {
   const { user, checkUser } = useAuth();
   const navigate = useNavigate();
+  const { addListener, removeListener } = useRealtime();
   const [projects, setProjects] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [filter, setFilter] = useState("all");
@@ -95,79 +98,36 @@ export default function Projects() {
   useEffect(() => {
     if (!user?.$id) return;
 
-    let isMounted = true;
-    let subscription = null;
+    const id = addListener("projects", (payload, events) => {
+      const isRelevant =
+        payload.ownerId === user.$id ||
+        (payload.collabIds && payload.collabIds.includes(user.$id));
 
-    const setupRealtime = async () => {
-      try {
-        // Use the raw string instead of the Channel helper
-        const sub = await realtime.subscribe(
-          "tablesdb.taski.tables.projects.rows",
-          (response) => {
-            if (!isMounted) return;
+      setProjects((prevProjects) => {
+        const projectExists = prevProjects.some((p) => p.$id === payload.$id);
 
-            const payload = response.payload;
-            let events = response.events;
-            events = Array.isArray(events) ? events : Object.values(events || {});
-
-            const isRelevant =
-              payload.ownerId === user.$id ||
-              (payload.collabIds && payload.collabIds.includes(user.$id));
-
-            setProjects((prevProjects) => {
-              const projectExists = prevProjects.some((p) => p.$id === payload.$id);
-
-              if (events.some((e) => e.includes(".create"))) {
-                if (isRelevant && !projectExists) {
-                  return [...prevProjects, payload];
-                }
-              }
-
-              if (events.some((e) => e.includes(".update"))) {
-                if (isRelevant) {
-                  if (projectExists) {
-                    return prevProjects.map((p) => (p.$id === payload.$id ? payload : p));
-                  } else {
-                    return [...prevProjects, payload];
-                  }
-                } else {
-                  if (projectExists) {
-                    return prevProjects.filter((p) => p.$id !== payload.$id);
-                  }
-                }
-              }
-
-              if (events.some((e) => e.includes(".delete"))) {
-                if (projectExists) {
-                  return prevProjects.filter((p) => p.$id !== payload.$id);
-                }
-              }
-
-              return prevProjects;
-            });
-          }
-        );
-
-        if (!isMounted) {
-          if (typeof sub.close === 'function') sub.close();
-          else if (typeof sub === 'function') sub();
-        } else {
-          subscription = sub;
+        if (events.some((e) => e.includes(".create"))) {
+          if (isRelevant && !projectExists) return [...prevProjects, payload];
         }
-      } catch (error) {
-        console.error("Failed to subscribe to projects:", error);
-      }
-    };
 
-    setupRealtime();
+        if (events.some((e) => e.includes(".update"))) {
+          if (isRelevant) {
+            if (projectExists) return prevProjects.map((p) => (p.$id === payload.$id ? payload : p));
+            return [...prevProjects, payload];
+          } else {
+            if (projectExists) return prevProjects.filter((p) => p.$id !== payload.$id);
+          }
+        }
 
-    return () => {
-      isMounted = false;
-      if (subscription) {
-        if (typeof subscription.close === 'function') subscription.close();
-        else if (typeof subscription === 'function') subscription();
-      }
-    };
+        if (events.some((e) => e.includes(".delete"))) {
+          if (projectExists) return prevProjects.filter((p) => p.$id !== payload.$id);
+        }
+
+        return prevProjects;
+      });
+    });
+
+    return () => removeListener("projects", id);
   }, [user?.$id]);
 
   const displayedProjects = projects.filter((project) => {
