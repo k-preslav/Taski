@@ -116,13 +116,15 @@ function Project() {
       if (events.some((e) => e.includes(".update"))) {
         setProjectData(payload);
         const isPublicNoAuth = payload.isPublic && payload.requireLogin === false;
+        const isOwnerOrCollab = user
+          ? payload.ownerId === user.$id ||
+            (payload.collabIds && payload.collabIds.includes(user.$id))
+          : false;
+
         if (isPublicNoAuth) {
-          setIsUserOwner(false);
+          setIsUserOwner(isOwnerOrCollab);
           setHasPermission(true);
         } else if (user) {
-          const isOwnerOrCollab =
-            payload.ownerId === user.$id ||
-            (payload.collabIds && payload.collabIds.includes(user.$id));
           setIsUserOwner(isOwnerOrCollab);
           setHasPermission(!payload.isPublic && !isOwnerOrCollab ? false : true);
         } else {

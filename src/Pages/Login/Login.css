@@ -28,8 +28,10 @@
   margin-bottom: 6rem;
   color: var(--text);
   display: flex;
-  gap: 0.5rem;
-  align-items: center;
+  flex-wrap: wrap;
+  gap: 0 0.5rem;
+  align-items: baseline;
+  justify-content: center;
   user-select: none;
 }
 
@@ -51,6 +53,18 @@
   flex-direction: column;
   gap: 8px;
   border: 1px solid var(--border);
+}
+
+@media (max-width: 480px) {
+  .login-card {
+    width: calc(100vw - 40px);
+    height: auto;
+  }
+
+  .login-header {
+    font-size: 2.5rem;
+    margin-bottom: 3rem;
+  }
 }
 
 .login-spinner-wrapper {

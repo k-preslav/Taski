@@ -31,6 +31,19 @@ export default function Canvas({ projectData, isOwner, realtimeEvent }) {
   const zoomOrigin = useRef({ x: 0, y: 0 });
   const animFrameId = useRef(null);
 
+  const activePointers = useRef(new Map());
+
+  const getPinchDistance = () => {
+    const pts = [...activePointers.current.values()];
+    if (pts.length < 2) return null;
+    const dx = pts[0].x - pts[1].x;
+    const dy = pts[0].y - pts[1].y;
+    return Math.sqrt(dx * dx + dy * dy);
+  };
+
+  const lastPinchDistance = useRef(null);
+  const lastPinchMidpoint = useRef(null);
+
   const MIN_SCALE = 0.1;
   const MAX_SCALE = 5;
   const SELECTION_THRESHOLD = 10; // pixels
@@ -176,7 +189,7 @@ export default function Canvas({ projectData, isOwner, realtimeEvent }) {
   };
 
   useEffect(() => {
-    if (!projectData?.$id || !user?.$id) return;
+    if (!projectData?.$id) return;
     loadElements();
   }, [projectData?.$id, user?.$id]);
 
@@ -301,6 +314,22 @@ export default function Canvas({ projectData, isOwner, realtimeEvent }) {
   }, [zoomToPoint]);
 
   const handlePointerDown = (e) => {
+    activePointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+    // If two fingers down, start pinch
+    if (activePointers.current.size === 2) {
+      lastPinchDistance.current = getPinchDistance();
+      const pts = [...activePointers.current.values()];
+      lastPinchMidpoint.current = {
+        x: (pts[0].x + pts[1].x) / 2,
+        y: (pts[0].y + pts[1].y) / 2,
+      };
+      setPanning(false);
+      setIsSelecting(false);
+      setSelectionBox(null);
+      return;
+    }
+
     const isMousePan = e.pointerType === "mouse" && (e.button === 2 || e.button === 1);
     const isTouchPan = e.pointerType === "touch" && e.target === canvasRef.current;
     const isCanvasClick = e.target === canvasRef.current && e.button === 0;
@@ -327,6 +356,25 @@ export default function Canvas({ projectData, isOwner, realtimeEvent }) {
   };
 
   const handlePointerMove = (e) => {
+    if (activePointers.current.has(e.pointerId)) {
+      activePointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    }
+
+    // Pinch-to-zoom: two fingers active
+    if (activePointers.current.size === 2) {
+      const dist = getPinchDistance();
+      if (lastPinchDistance.current !== null && dist !== null) {
+        const ratio = dist / lastPinchDistance.current;
+        const pts = [...activePointers.current.values()];
+        const midX = (pts[0].x + pts[1].x) / 2;
+        const midY = (pts[0].y + pts[1].y) / 2;
+        const newScale = Math.min(Math.max(MIN_SCALE, currentScale.current * ratio), MAX_SCALE);
+        zoomToPoint(newScale, midX, midY);
+      }
+      lastPinchDistance.current = dist;
+      return;
+    }
+
     if (isSelecting && selectionBox) {
       const endX = (e.clientX - currentCamera.current.x) / currentScale.current;
       const endY = ((e.clientY) - currentCamera.current.y) / currentScale.current;
@@ -359,6 +407,14 @@ export default function Canvas({ projectData, isOwner, realtimeEvent }) {
   };
 
   const handlePointerUp = (e) => {
+    activePointers.current.delete(e.pointerId);
+
+    // Reset pinch state when a finger lifts
+    if (activePointers.current.size < 2) {
+      lastPinchDistance.current = null;
+      lastPinchMidpoint.current = null;
+    }
+
     if (isSelecting && selectionBox) {
       // Finalize selection
       const { startX, startY, endX, endY } = selectionBox;
@@ -404,7 +460,10 @@ export default function Canvas({ projectData, isOwner, realtimeEvent }) {
     }
   };
 
-  const handlePointerCancel = () => {
+  const handlePointerCancel = (e) => {
+    if (e?.pointerId != null) activePointers.current.delete(e.pointerId);
+    lastPinchDistance.current = null;
+    lastPinchMidpoint.current = null;
     setIsSelecting(false);
     setSelectionBox(null);
     setPanning(false);

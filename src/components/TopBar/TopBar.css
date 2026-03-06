@@ -150,6 +150,24 @@
     transform: translateY(1px);
 }
 
+@media (max-width: 480px) {
+  .project-selector__name {
+    max-width: 90px;
+  }
+
+  .brand__title {
+    display: none;
+  }
+
+  .topbar {
+    padding: 0 6px;
+  }
+
+  .theme-toggle {
+    margin-right: 2px;
+  }
+}
+
 .dropdown-menu {
     position: absolute;
     top: calc(100% + 20px);

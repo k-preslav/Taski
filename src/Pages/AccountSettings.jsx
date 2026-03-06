@@ -86,6 +86,7 @@ export default function AccountSettings() {
   const onFileChange = async (e) => {
     const file = e.target.files && e.target.files[0];
     if (!file) return;
+    if (user?.anonymous || dbUser?.isAnon) return;
 
     try {
       setIsUploading(true);
@@ -143,12 +144,13 @@ export default function AccountSettings() {
   }
 
   const isAnon = user?.anonymous || dbUser?.isAnon === true;
+  const isMobile = window.innerWidth <= 480;
 
   return (
     <div style={styles.pageWrapper}>
       <TopBar showProjectMenu={false} />
 
-      <div style={styles.container}>
+      <div style={{ ...styles.container, paddingTop: isMobile ? "32px" : "100px" }}>
         <div style={styles.navRow} onClick={() => navigate("/projects")}>
           <ChevronLeft size={18} />
           <span>Back to Projects</span>
@@ -156,23 +158,26 @@ export default function AccountSettings() {
 
         <h1 style={styles.heading}>Account Settings</h1>
 
-        <div style={styles.card}>
+        <div style={{
+            ...styles.card,
+            ...(isMobile ? { flexDirection: "column", alignItems: "center" } : {})
+          }}>
           <div
             style={{
               position: "relative",
               width: "fit-content",
               height: "fit-content",
-              cursor: isUploading ? "default" : "pointer"
+              cursor: (isUploading || isAnon) ? "default" : "pointer"
             }}
-            onMouseEnter={() => setIsBubbleHovered(true)}
+            onMouseEnter={() => !isAnon && setIsBubbleHovered(true)}
             onMouseLeave={() => setIsBubbleHovered(false)}
             onClick={() => {
-              if (!isUploading) fileInputRef.current?.click();
+              if (!isUploading && !isAnon) fileInputRef.current?.click();
             }}
           >
             <AccountBubble size={64} accountId={user?.$id} />
 
-            {((isBubbleHovered || isUploading) && !dbUser.isAnon) && (
+            {((isBubbleHovered || isUploading) && !isAnon) && (
               <div style={styles.accountBubbleOverlay}>
                 <div style={styles.accountBubbleOverlayIcon}>
                   {isUploading ? (

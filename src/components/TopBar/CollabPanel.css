@@ -18,6 +18,14 @@
   height: 46px;
 }
 
+@media (max-width: 480px) {
+  .collab-panel {
+    margin-right: 4px;
+    height: 38px;
+    padding: 3px;
+  }
+}
+
 .collab-panel .more {
   display: flex;
   justify-content: center;

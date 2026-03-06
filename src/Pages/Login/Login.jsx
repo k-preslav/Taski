@@ -66,7 +66,7 @@ function Login() {
 
       <div className="login-content">
         <p className="login-header">
-          Let's get <span className="login-header-taski">Taski</span>
+          <span>Let's get</span> <span className="login-header-taski">Taski</span>
         </p>
 
         <div className="login-card">

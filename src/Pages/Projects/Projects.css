@@ -131,6 +131,21 @@
   overflow: hidden;
 }
 
+@media (max-width: 480px) {
+  .projects-main {
+    padding: 24px 16px;
+    justify-content: flex-start;
+  }
+
+  .projects-card {
+    height: calc(100dvh - 160px);
+  }
+
+  .projects-heading {
+    font-size: 22px;
+  }
+}
+
 .projects-list {
   padding: 16px;
   overflow-y: auto;

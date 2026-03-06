@@ -15,6 +15,18 @@
   animation: comeDown 0.2s ease;
 }
 
+@media (max-width: 480px) {
+  .tools-container {
+    top: auto;
+    bottom: 15px;
+  }
+
+  .canvasToolButn {
+    width: 52px;
+    height: 52px;
+  }
+}
+
 @keyframes comeDown {
   from { transform: translate(-50%, -50px); }
   to { transform: translate(-50%, 0); }
