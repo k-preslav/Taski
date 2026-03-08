@@ -1,55 +1,99 @@
-:root{
+:root {
   /* Dark theme (default) */
   color-scheme: dark;
-  --bg: #1a1a1a;
-  --surface: #242424;
-  --panel: #2a2a2a;
-  --grid: #202020;
-  --text: #e3e3e3;
-  --text-muted: #999999;
-  --text-subtle: #aaaaaa;
-  --text-button: #cacaca;
-  --border: #333333;
-  --button-bg: #2a2a2a;
-  --button-border: #3d3d3d;
-  --danger: #ff6b6b;
-  --danger-bg: #3d2323;
-  --danger-border: #542b2b;
-  --accent: #8932b2;
-  --accent-rgb: 213, 121, 255;
-  --accent2: #ffd149;
-  --glass: rgba(255,255,255,0.03);
-  --shadow: 0 10px 30px rgba(0,0,0,0.3);
-  --shadow-sm: 0 2px 8px rgba(0,0,0,0.1);
-  --muted-2: #666666;
-  --warning: #eab308;
+
+  /* Semantic color tokens */
+  --color-bg-canvas: #1d1d1d;
+  --color-bg-surface: #282828;
+  --color-bg-elevated: #303030;
+  --color-bg-grid: #232323;
+
+  --color-text-primary: #ececec;
+  --color-text-secondary: #bbbbbb;
+  --color-text-tertiary: #a3a3a3;
+  --color-text-on-button: #dfdfdf;
+
+  --color-border-default: #363636;
+  --color-border-strong: #4a4a4a;
+
+  --color-action-bg: #303030;
+  --color-action-border: #4c4c4c;
+
+  --color-danger: #ff7a7a;
+  --color-danger-bg: #3b2226;
+  --color-danger-border: #5a3238;
+
+  --color-accent: #8b5cf6;
+  --color-accent-rgb: 139, 92, 246;
+  --color-accent-alt: #e4c15d;
+
+  --color-overlay-glass: rgba(255, 255, 255, 0.06);
+  --color-muted-line: #787878;
+  --color-warning: #d4a017;
+
+  --elevation-md: 0 8px 20px rgba(0, 0, 0, 0.18);
+  --elevation-sm: 0 2px 6px rgba(0, 0, 0, 0.12);
+
+  /* Backward-compatible aliases (do not remove yet) */
+  --bg: var(--color-bg-canvas);
+  --surface: var(--color-bg-surface);
+  --panel: var(--color-bg-elevated);
+  --grid: var(--color-bg-grid);
+  --text: var(--color-text-primary);
+  --text-muted: var(--color-text-secondary);
+  --text-subtle: var(--color-text-tertiary);
+  --text-button: var(--color-text-on-button);
+  --border: var(--color-border-default);
+  --border-high: var(--color-border-strong);
+  --button-bg: var(--color-action-bg);
+  --button-border: var(--color-action-border);
+  --danger: var(--color-danger);
+  --danger-bg: var(--color-danger-bg);
+  --danger-border: var(--color-danger-border);
+  --accent: var(--color-accent);
+  --accent-rgb: var(--color-accent-rgb);
+  --accent2: var(--color-accent-alt);
+  --glass: var(--color-overlay-glass);
+  --shadow: var(--elevation-md);
+  --shadow-sm: var(--elevation-sm);
+  --muted-2: var(--color-muted-line);
+  --warning: var(--color-warning);
 }
 
 /* Light theme overrides */
-:root[data-theme="light"]{
+:root[data-theme="light"] {
   color-scheme: light;
-  --bg: #fafbfc;
-  --surface: #ffffff;
-  --panel: #f5f6f8;
-  --grid: #ebebeb;
-  --text: #0d1117;
-  --text-muted: #57606a;
-  --text-subtle: #6e7781;
-  --text-button: #24292f;
-  --border: #d0d7de;
-  --button-bg: #f6f8fa;
-  --button-border: #d0d7de;
-  --danger: #cf222e;
-  --danger-bg: #ffebe9;
-  --danger-border: #ffcecb;
-  --accent: #8250df;
-  --accent-rgb: 130, 80, 223;
-  --accent2: #f0a400;
-  --glass: rgba(209,213,219,0.4);
-  --shadow: 0 8px 24px rgba(140,149,159,0.15);
-  --shadow-sm: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
-  --muted-2: #8c959f;
-  --warning: #bf8700;
+
+  --color-bg-canvas: #f6f6f7;
+  --color-bg-surface: #ffffff;
+  --color-bg-elevated: #f0f1f3;
+  --color-bg-grid: #e6e7ea;
+
+  --color-text-primary: #1f2328;
+  --color-text-secondary: #5f6670;
+  --color-text-tertiary: #737b86;
+  --color-text-on-button: #272c34;
+
+  --color-border-default: #d3d7de;
+  --color-border-strong: #b8bec8;
+
+  --color-action-bg: #eff1f4;
+  --color-action-border: #d3d7de;
+
+  --color-danger: #c7333e;
+  --color-danger-bg: #fdeced;
+  --color-danger-border: #f4c7cc;
+
+  --color-accent: #7c3aed;
+  --color-accent-rgb: 124, 58, 237;
+  --color-accent-alt: #b7860b;
+
+  --color-overlay-glass: rgba(110, 115, 125, 0.2);
+  --color-muted-line: #8a8f98;
+  --color-warning: #9a6a00;
+
+  --elevation-md: 0 8px 20px rgba(16, 24, 40, 0.12);
+  --elevation-sm: 0 1px 2px rgba(16, 24, 40, 0.08), 0 3px 8px rgba(16, 24, 40, 0.06);
 }
 
 /* Smooth, subtle transitions when switching theme */
