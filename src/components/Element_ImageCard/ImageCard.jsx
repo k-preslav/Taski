@@ -377,7 +377,7 @@ function ImageCard({ cardData: elementData, camera, scale = 1, isPanning, onCard
           onPointerUp={(e) => e.stopPropagation()}
         >
           <button className="imageModalClose" onClick={() => setIsPreviewOpen(false)}>
-            <XIcon size={24} color="#fff" />
+            <XIcon size={24} color="var(--text)" />
           </button>
           
           <div className="imageModalContent" onClick={(e) => e.stopPropagation()}>

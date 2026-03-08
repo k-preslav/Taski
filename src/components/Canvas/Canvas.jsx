@@ -24,6 +24,9 @@ export default function Canvas({ projectData, isOwner, realtimeEvent }) {
   const [isSelecting, setIsSelecting] = useState(false);
   const selectionThresholdMet = useRef(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isMobileView, setIsMobileView] = useState(() =>
+    typeof window !== "undefined" ? window.innerWidth <= 768 : false,
+  );
 
   const targetScale = useRef(1);
   const currentScale = useRef(1);
@@ -180,7 +183,7 @@ export default function Canvas({ projectData, isOwner, realtimeEvent }) {
       const res = await tablesDB.listRows({
         databaseId: "taski",
         tableId: "elements",
-        queries: [Query.equal("projectId", projectData.$id)],
+        queries: [Query.equal("projectId", projectData.$id), Query.limit(10000)],
       });
       setElements(res.rows);
     } catch (error) {
@@ -192,6 +195,12 @@ export default function Canvas({ projectData, isOwner, realtimeEvent }) {
     if (!projectData?.$id) return;
     loadElements();
   }, [projectData?.$id, user?.$id]);
+
+  useEffect(() => {
+    const onResize = () => setIsMobileView(window.innerWidth <= 768);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
 
   // Handle realtime element events forwarded from Project.jsx
   useEffect(() => {
@@ -595,11 +604,31 @@ export default function Canvas({ projectData, isOwner, realtimeEvent }) {
         )}
       </div>
 
-      <div style={styles.zoomControls}>
-        <button style={styles.zoomBtn} onClick={manualZoomIn} title="Zoom In">
+      <div
+        style={
+          isMobileView
+            ? {
+                ...styles.zoomControls,
+                ...styles.zoomControlsMobile,
+                bottom: isUserOwner
+                  ? "calc(env(safe-area-inset-bottom, 0px) + 78px)"
+                  : "calc(env(safe-area-inset-bottom, 0px) + 14px)",
+              }
+            : styles.zoomControls
+        }
+      >
+        <button
+          style={isMobileView ? { ...styles.zoomBtn, ...styles.zoomBtnMobile } : styles.zoomBtn}
+          onClick={manualZoomIn}
+          title="Zoom In"
+        >
           +
         </button>
-        <button style={styles.zoomBtn} onClick={manualZoomOut} title="Zoom Out">
+        <button
+          style={isMobileView ? { ...styles.zoomBtn, ...styles.zoomBtnMobile } : styles.zoomBtn}
+          onClick={manualZoomOut}
+          title="Zoom Out"
+        >
           -
         </button>
       </div>
@@ -647,6 +676,13 @@ const styles = {
     gap: "8px",
     zIndex: 9999,
   },
+  zoomControlsMobile: {
+    left: "50%",
+    transform: "translateX(-50%)",
+    flexDirection: "row",
+    gap: "10px",
+    zIndex: 999,
+  },
   zoomBtn: {
     width: "40px",
     height: "40px",
@@ -659,7 +695,13 @@ const styles = {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+    boxShadow: "var(--shadow-sm)",
     userSelect: "none",
-  }
+  },
+  zoomBtnMobile: {
+    width: "44px",
+    height: "44px",
+    borderRadius: "12px",
+    backgroundColor: "var(--surface)",
+  },
 };

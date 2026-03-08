@@ -7,7 +7,7 @@ import { tablesDB } from "../../appwrite/config";
 import { useRealtime } from "../../context/RealtimeContext";
 import { Query , ID} from "appwrite";
 import { useNavigate } from "react-router-dom";
-import { ListIcon, SquircleDashedIcon, CrownIcon, UsersIcon } from "lucide-react";
+import { ListIcon, SquircleDashedIcon, CrownIcon, UsersIcon, SearchIcon } from "lucide-react";
 import GithubIcon from "../../components/GithubIcon";
 import Spinner from "../../components/Spinner/Spinner";
 
@@ -21,6 +21,7 @@ export default function Projects() {
   const [projects, setProjects] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [filter, setFilter] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
 
   const getProjects = async () => {
     if (!user?.$id) return;
@@ -30,13 +31,13 @@ export default function Projects() {
       const ownedPromise = tablesDB.listRows({
         databaseId: "taski",
         tableId: "projects",
-        queries: [Query.equal("ownerId", user.$id)],
+        queries: [Query.equal("ownerId", user.$id), Query.limit(100)],
       });
 
       const collabPromise = tablesDB.listRows({
         databaseId: "taski",
         tableId: "projects",
-        queries: [Query.contains("collabIds", user.$id)],
+        queries: [Query.contains("collabIds", user.$id), Query.limit(100)],
       });
 
       const [ownedResponse, collabResponse] = await Promise.all([
@@ -69,7 +70,7 @@ export default function Projects() {
   const handleSave = async (oldId, newName) => {
     try {
       const realId = ID.unique();
-      const response = await tablesDB.createRow({
+      await tablesDB.createRow({
         databaseId: "taski",
         tableId: "projects",
         rowId: realId,
@@ -79,11 +80,7 @@ export default function Projects() {
         },
       });
 
-      setProjects((prev) =>
-        prev.map((p) =>
-          p.$id === oldId ? { ...response, name: newName, isTemp: false } : p,
-        ),
-      );
+      setProjects((prev) => prev.filter((p) => p.$id !== oldId));
     } catch (error) {
       console.error(error);
       setProjects((prev) => prev.filter((p) => p.$id !== oldId));
@@ -131,10 +128,16 @@ export default function Projects() {
   }, [user?.$id]);
 
   const displayedProjects = projects.filter((project) => {
-    if (filter === "all") return true;
-    if (filter === "owned") return project.ownerId === user.$id;
-    if (filter === "collab") return project.ownerId !== user.$id;
-    return true;
+    // Filter by ownership
+    let passesFilter = true;
+    if (filter === "owned") passesFilter = project.ownerId === user.$id;
+    if (filter === "collab") passesFilter = project.ownerId !== user.$id;
+    
+    // Filter by search query
+    const passesSearch = searchQuery.trim() === "" || 
+      project.name?.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    return passesFilter && passesSearch;
   });
 
   return (
@@ -172,6 +175,26 @@ export default function Projects() {
           </div>
 
           <div className="projects-card">
+            <div className="projects-search-container">
+              <SearchIcon size={16} className="projects-search-icon" />
+              <input
+                type="text"
+                className="projects-search-input"
+                placeholder="Search projects..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              {searchQuery && (
+                <button
+                  className="projects-search-clear"
+                  onClick={() => setSearchQuery("")}
+                  aria-label="Clear search"
+                >
+                  ×
+                </button>
+              )}
+            </div>
+
             <div className="projects-list">
               {isLoading ? (
                 <div className="projects-center">
@@ -185,6 +208,7 @@ export default function Projects() {
                       isOwner={project.ownerId === user.$id}
                       name={project.name}
                       onSave={(newName) => handleSave(project.$id, newName)}
+                      onCancel={() => setProjects((prev) => prev.filter((p) => p.$id !== project.$id))}
                       onClick={() => {
                         if (project.isTemp) return;
                         navigate(`/project/${project.$id}`);
@@ -196,11 +220,13 @@ export default function Projects() {
                 <div className="projects-center">
                   <SquircleDashedIcon size={32} color="var(--border)" />
                   <p className="projects-empty-text">
-                    {filter === "all"
-                      ? "No projects yet"
-                      : filter === "owned"
-                        ? "No owned projects"
-                        : "No shared projects"}
+                    {searchQuery
+                      ? "No projects found"
+                      : filter === "all"
+                        ? "No projects yet"
+                        : filter === "owned"
+                          ? "No owned projects"
+                          : "No shared projects"}
                   </p>
                 </div>
               )}

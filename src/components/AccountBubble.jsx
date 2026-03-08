@@ -77,7 +77,7 @@ export default function AccountBubble({ size = 36, onClick, isOwner, accountId }
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    boxShadow: "0 2px 10px rgba(0,0,0,0.15)",
+    boxShadow: "0 1px 4px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04)",
     cursor: onClick ? "pointer" : "default",
     userSelect: "none",
     background: avatarUrl ? "transparent" : "linear-gradient(180deg, #FB6603 0%, #2854E5 100%)",

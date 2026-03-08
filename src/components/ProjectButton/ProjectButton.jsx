@@ -3,12 +3,19 @@ import "./ProjectButton.css";
 import AccountBubble from "../AccountBubble";
 import { CrownIcon, UsersIcon } from "lucide-react";
 
-export default function ProjectButton({ name, isOwner, onClick, onSave }) {
+export default function ProjectButton({ name, isOwner, onClick, onSave, onCancel }) {
   const [isEditing, setIsEditing] = useState(!name);
   const [value, setValue] = useState(name || "");
 
   const saveAndExit = (finalValue) => {
-    const cleanedValue = finalValue.trim() || "New Project";
+    const cleanedValue = finalValue.trim();
+    
+    // Cancel if empty (no default name)
+    if (!cleanedValue) {
+      onCancel?.();
+      return;
+    }
+    
     setValue(cleanedValue);
     setIsEditing(false);
 
@@ -26,8 +33,13 @@ export default function ProjectButton({ name, isOwner, onClick, onSave }) {
       e.preventDefault();
       saveAndExit(value);
     } else if (e.key === "Escape") {
-      setValue(name || "New Project");
-      setIsEditing(false);
+      // Cancel if it's a new project (no name) on escape
+      if (!name) {
+        onCancel?.();
+      } else {
+        setValue(name);
+        setIsEditing(false);
+      }
     }
   };
 

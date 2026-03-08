@@ -2,7 +2,7 @@
   position: absolute;
   background-color: var(--surface);
   border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15), 0 2px 4px rgba(0, 0, 0, 0.1);
   width: 260px;
   min-height: 80px;
   max-height: 600px; 
@@ -14,8 +14,16 @@
   animation: card-pop 0.15s ease;
 }
 
+:root[data-theme="dark"] .card {
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
 .card.selected {
   border: 1px solid var(--accent);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15), 0 2px 4px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(var(--accent-rgb), 0.2);
+}
+
+:root[data-theme="dark"] .card.selected {
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(var(--accent-rgb), 0.15);
 }
 

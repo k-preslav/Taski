@@ -50,7 +50,7 @@ export default function TopBar({
         tableId: "accounts",
         rowId: user.$id,
         data: { showHowToUse: false },
-      }); 
+      });
     } catch (err) {
       console.error("Failed to update how-to-use preference:", err);
     }
@@ -59,7 +59,7 @@ export default function TopBar({
   useEffect(() => {
     if (!user?.$id) return;
     if (!projectData) return;
-    
+
     tablesDB.getRow({
       databaseId: "taski",
       tableId: "accounts",
@@ -170,6 +170,18 @@ export default function TopBar({
       <div className="topbar__right" ref={accountRef}>
         <button
           className="theme-toggle"
+          onClick={() => {
+            setOpenAccountMenu(false);
+            setShowHowToUse(true);
+          }}
+          aria-label="How to use"
+          title="How to use"
+        >
+          <BadgeQuestionMarkIcon size={16} />
+        </button>
+
+        <button
+          className="theme-toggle"
           onClick={toggle}
           aria-label="Toggle theme"
           title={theme === "dark" ? "Switch to light" : "Switch to dark"}
@@ -208,16 +220,6 @@ export default function TopBar({
             >
               <UserRoundCogIcon size={18} />
               Account Settings
-            </button>
-            <button
-              className="menu-item"
-              onClick={() => {
-                setOpenAccountMenu(false);
-                setShowHowToUse(true);
-              }}
-            >
-              <BadgeQuestionMarkIcon size={18} style={{ transform: 'translateX(-2px)' }} />
-              How to Use
             </button>
             <button
               className="menu-item menu-item--danger"

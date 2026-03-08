@@ -78,8 +78,10 @@
 
 .projects-sort-button.active {
   background: var(--panel);
-  color: var(--text);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  color: var(--text);  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+:root[data-theme="dark"] .projects-sort-button.active {  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .projects-sort-button::after,
@@ -127,8 +129,73 @@
   display: flex;
   flex-direction: column;
   height: 520px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.04);
   overflow: hidden;
+}
+
+:root[data-theme="dark"] .projects-card {
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.projects-search-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: 16px;
+  border-bottom: 1px solid var(--border);
+  background-color: var(--surface);
+  flex-shrink: 0;
+}
+
+.projects-search-icon {
+  position: absolute;
+  left: 28px;
+  color: var(--text-muted);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.projects-search-input {
+  width: 100%;
+  padding: 9px 36px 9px 36px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 500;
+  outline: none;
+  transition: all 0.15s ease;
+}
+
+.projects-search-input::placeholder {
+  color: var(--text-muted);
+}
+
+.projects-search-clear {
+  position: absolute;
+  right: 24px;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 4px;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.projects-search-clear:hover {
+  background: var(--panel);
+  color: var(--text);
+}
+
+:root[data-theme="dark"] .projects-card {
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
 
 @media (max-width: 480px) {
@@ -143,6 +210,18 @@
 
   .projects-heading {
     font-size: 22px;
+  }
+
+  .projects-search-container {
+    padding: 12px;
+  }
+
+  .projects-search-icon {
+    left: 24px;
+  }
+
+  .projects-search-clear {
+    right: 20px;
   }
 }
 

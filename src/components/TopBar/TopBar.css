@@ -55,13 +55,13 @@
 }
 .theme-toggle:hover {
     color: var(--text);
-    background: rgba(255,255,255,0.02);
+    background: var(--panel);
 }
 
 .login-button {
     background: var(--bg);
     border: none;
-    color: white;
+    color: var(--text);
     padding: 20px 16px;
     border-radius: 99px;
     border: 1px solid var(--border);
@@ -180,6 +180,10 @@
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
     animation: menu-pop 0.15s cubic-bezier(0.2, 1, 0.3, 1);
     z-index: 1100;
+}
+
+:root[data-theme="light"] .dropdown-menu {
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12), 0 2px 4px rgba(0, 0, 0, 0.08);
 }
 
 .dropdown-menu--right {

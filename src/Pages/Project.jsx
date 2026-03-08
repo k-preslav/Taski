@@ -167,7 +167,7 @@ function Project() {
     const response = await tablesDB.listRows({
       databaseId: "taski",
       tableId: "elements",
-      queries: [Query.equal("projectId", projectData.$id)],
+      queries: [Query.equal("projectId", projectData.$id), Query.limit(10000)],
     });
 
     const deletePromises = response.rows.map((card) =>

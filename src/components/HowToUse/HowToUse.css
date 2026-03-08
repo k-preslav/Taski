@@ -5,11 +5,15 @@
     width: 100%;
     height: 100%;
     backdrop-filter: blur(10px);
-    background-color: rgba(0, 0, 0, 0.1);
+    background-color: rgba(0, 0, 0, 0.2);
     z-index: 1000;
     display: flex;
     align-items: center;
     justify-content: center;
+}
+
+:root[data-theme="light"] .howToContainer {
+    background-color: rgba(0, 0, 0, 0.3);
 }
 
 .helpPanel {
@@ -19,12 +23,17 @@
     flex-direction: column;
     gap: 12px;
     padding: 36px 40px;
-    background-color: var(--panel);
+    padding-bottom: 18px;
+    background-color: var(--surface);
     border: 1px solid var(--border);
     border-radius: 20px;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
     animation: popUp 0.36s cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
     overflow-y: auto;
+}
+
+:root[data-theme="light"] .helpPanel {
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.05);
 }
 
 @keyframes popUp {
@@ -49,7 +58,7 @@
     font-family: "Rubik", sans-serif;
     font-weight: 600;
     margin: 0;
-    color: var(--text-primary, #fff);
+    color: var(--text);
 }
 
 .separator {
@@ -80,14 +89,14 @@
     font-family: "Rubik", sans-serif;
     font-weight: 600;
     margin: 0;
-    color: var(--text-primary, #fff);
+    color: var(--text);
 }
 
 .description {
     font-size: 16px;
     font-family: 'Rubik', sans-serif;
     line-height: 1.6;
-    color: var(--text-secondary, rgba(255, 255, 255, 0.75));
+    color: var(--text);
     margin: 0;
 }
 
@@ -102,7 +111,7 @@
     font-size: 13px;
     font-family: 'Rubik', sans-serif;
     font-weight: 600;
-    color: var(--text-secondary, rgba(255, 255, 255, 0.6));
+    color: var(--text);
     margin: 0;
     text-transform: uppercase;
     letter-spacing: 0.8px;
@@ -123,20 +132,20 @@
 .syntaxItem code {
     font-family: 'Monaco', 'Courier New', monospace;
     font-size: 15px;
-    background-color: rgba(255, 255, 255, 0.08);
+    background-color: var(--panel);
     border: 1px solid var(--border);
     border-radius: 8px;
     padding: 6px 12px;
     min-width: 48px;
     text-align: center;
-    color: var(--text-primary, #fff);
+    color: var(--text);
     font-weight: 500;
 }
 
 .syntaxItem span {
     font-size: 16px;
     font-family: 'Rubik', sans-serif;
-    color: var(--text-secondary, rgba(255, 255, 255, 0.75));
+    color: var(--text);
 }
 
 .gifContainer {
@@ -148,32 +157,48 @@
     border: 1px solid var(--border);
     max-width: 340px;
     height: auto;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12), 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+:root[data-theme="dark"] .helpGif {
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
 }
 
+.buttonContainer {
+    display: flex;
+    justify-content: center;
+}
+
 .gotItButton {
-    align-self: center;
-    padding: 14px 38px;
-    font-size: 16px;
+    padding: 12px 32px;
+    font-size: 15px;
     font-family: 'Rubik', sans-serif;
-    font-weight: 500;
-    color: #fff;
-    background-color: rgba(255, 255, 255, 0.1);
+    font-weight: 600;
+    color: var(--text);
+    background-color: var(--surface);
     border: 1px solid var(--border);
     border-radius: 10px;
     cursor: pointer;
     transition: all 0.2s ease;
-    margin-top: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .gotItButton:hover {
-    background-color: rgba(255, 255, 255, 0.15);
+    background-color: var(--panel);
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+:root[data-theme="dark"] .gotItButton:hover {
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
 }
 
 .gotItButton:active {
     transform: translateY(0);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 @media (max-width: 768px) {

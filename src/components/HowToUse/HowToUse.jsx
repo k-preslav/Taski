@@ -1,6 +1,6 @@
 import React from 'react'
 import "./HowToUse.css";
-import { BadgeQuestionMarkIcon } from 'lucide-react';
+import { BadgeQuestionMarkIcon, CheckCheckIcon, ThumbsUpIcon } from 'lucide-react';
 
 function HowToUse({ onClose }) {
   return (
@@ -48,9 +48,14 @@ function HowToUse({ onClose }) {
           </div>
         </div>
         
-        <button className='gotItButton' onClick={onClose}>
-          Got it
-        </button>
+        <hr className='separator' />
+        
+        <div className='buttonContainer'>
+          <button className='gotItButton' onClick={onClose}>
+            <ThumbsUpIcon size={18} style={{transform: 'translateY(-1px)'}} />
+            Got it
+          </button>
+        </div>
       </div>
     </div>
   )
