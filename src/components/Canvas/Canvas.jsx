@@ -674,7 +674,7 @@ const styles = {
     display: "flex",
     flexDirection: "row",
     gap: "8px",
-    zIndex: 9999,
+    zIndex: 999,
   },
   zoomControlsMobile: {
     left: "50%",
