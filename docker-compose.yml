@@ -1,0 +1,19 @@
+version: "3.9"
+services:
+  frontend:
+    build: .
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+  backend:
+    image: appwrite/appwrite:1.5.2
+    environment:
+      - _APP_SYSTEM_SECURITY_EMAIL_CHANGE=true
+      - _APP_SYSTEM_SECURITY_PASSWORD_RESET=true
+    ports:
+      - "8080:80"
+    volumes:
+      - appwrite-data:/storage
+volumes:
+  appwrite-data:
